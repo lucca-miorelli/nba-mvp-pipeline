@@ -3,9 +3,10 @@ import numpy as np
 from datetime import datetime
 import shap
 from lightgbm import LGBMRegressor
+import os
 
 PATH_SAVE = os.path.join('data', '{}.parquet')
-PATH_MODEL = os.path.join('model', '{}.parquet')
+PATH_MODEL = os.path.join('model', '{}')
 
 ###############################################################################
 #                                FUNCTIONS                                    #
