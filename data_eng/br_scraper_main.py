@@ -34,7 +34,7 @@ advanced = pd.DataFrame()
 infos = pd.DataFrame()
 teams = pd.DataFrame()
 
-time_sleep = 4
+time_sleep = 6
 
 # Pegando dados para 2022-23
 for season in SEASON:
@@ -60,6 +60,7 @@ for season in SEASON:
             
             # Stats avançadas
             avancado = get_roster_stats(franchise, season, data_format='ADVANCED', playoffs=False)
+            print("This is avancado")
             print(avancado)
             for x in avancado.columns:
                 if x not in ['G','PLAYER','POS','AGE','TEAM','SEASON','MP',
@@ -90,7 +91,7 @@ for season in SEASON:
         except Exception as e:
             # Time não existia na temporada
             print(e)
-            continue
+            raise Exception
             
     print(season)
 
@@ -141,11 +142,23 @@ df = df.fillna(-1)
 
 print("This is final df")
 print(df.head())
+print(df.describe())
+
+print("This is final df TS%_ADVANCED")
+print(df["TS%_ADVANCED"])
+
+print("printing dtypes...")
+print(df.dtypes)
+
+df.to_csv(
+    path=os.path.join("data", "test.csv"),
+    index=False
+)
 
 df.to_parquet(
     path=PATH_SAVE.format(
         str(datetime.today().strftime('%d_%m_%y'))
     ),
     index=False
-    )
+)
 
