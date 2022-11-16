@@ -47,26 +47,49 @@ TEAM_SETS = [
 ###############################################################################
 
 def remove_accents(name, team, season_end_year):
+    print("remove_accents")
+
     alphabet = set('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXZY ')
+    print(name)
+
     if len(set(name).difference(alphabet))==0:
+        print("Names alright")
         return name
+
+    print("Fixing names")
     r = get(f'https://www.basketball-reference.com/teams/{team}/{season_end_year}.html')
+
     team_df = None
     best_match = name
+
+    print(r.status_code)
+
     if r.status_code==200:
         soup = BeautifulSoup(r.content, 'html.parser')
         table = soup.find('table')
+
+        print("This is team_df inside remove accents")
         team_df = pd.read_html(str(table))[0]
+        print(team_df)
+
         max_matches = 0
+
         for p in team_df['Player']:
+            
             matches = sum(l1 == l2 for l1, l2 in zip(p, name))
-            if matches>max_matches:
+
+            if matches > max_matches:
                 max_matches = matches
+                print(f"max_matches: {max_matches}")
                 best_match = p
+                print(f"best_match: {best_match}")
+    else:
+        raise Exception(f"Response status on fixing names: {r.status_code}")
                 
     return best_match
 
 def get_roster(team, season_end_year):
+    print("get_roster")
     r = get(f'https://www.basketball-reference.com/teams/{team}/{season_end_year}.html')
     print(r)
     df = None
@@ -88,40 +111,79 @@ def get_roster(team, season_end_year):
 
     return df
 
-def get_roster_stats(team: list, season_end_year: int, data_format='PER_GAME', playoffs=False):
+def get_roster_stats(team: str, season_end_year: int, data_format='PER_GAME', playoffs=False):
+    print("get_roster_stats")
+
     if playoffs:
         period = 'playoffs'
     else:
         period = 'leagues'
-    selector = data_format.lower()
-    r = get(f'https://widgets.sports-reference.com/wg.fcgi?css=1&site=bbr&url=%2F{period}%2FNBA_{season_end_year}_{selector}.html&div=div_{selector}_stats',
-            )
+
     df = None
     possible_teams = [team]
+    selector = data_format.lower()
+
+    r = get(
+        f'https://widgets.sports-reference.com/wg.fcgi?css=1&site=bbr&url=%2F{period}%2FNBA_{season_end_year}_{selector}.html&div=div_{selector}_stats'
+    )
+    print(r)
+
     for s in TEAM_SETS:
         if team in s:
             possible_teams = s
+
     if r.status_code == 200:
         soup = BeautifulSoup(r.content, 'html.parser')
         table = soup.find('table')
+
+        print("This is df2")
         df2 = pd.read_html(str(table))[0]
-        for index, row in df2.iterrows():
-            if row['Tm'] in possible_teams:
-                if df is None:
-                    df = pd.DataFrame(columns=list(row.index)+['SEASON'])
-                row['SEASON'] = f'{str(int(season_end_year)-1)}-{str(season_end_year)[2:]}'
-                df = pd.concat([df, row], axis='index')
-        df.rename(columns={'Player': 'PLAYER', 'Age': 'AGE',
-                          'Tm': 'TEAM', 'Pos': 'POS'}, inplace=True)
+        print(df2)
+        
+        print(len(df2.columns))
+        df2['SEASON'] = f'{str(int(season_end_year)-1)}-{str(season_end_year)[2:]}'
+        print(len(df2.columns))
+
+        df = df2[df2['Tm'].isin(possible_teams)]
+
+        print(df)
+
+        df.rename(
+            columns={
+                'Player': 'PLAYER',
+                'Age'   : 'AGE',
+                'Tm'    : 'TEAM',
+                'Pos'   : 'POS'
+            },
+            inplace=True
+        )
+
+        df.dropna(
+            axis    ='index',
+            subset  ='PLAYER'
+        )
+
         df['PLAYER'] = df['PLAYER'].apply(
             lambda name: remove_accents(name, team, season_end_year))
-        df = df.reset_index().drop(['Rk', 'index'], axis=1)
+
+        df.reset_index(
+            inplace=True
+        )
         
+        df.drop(
+            labels  =['Rk', 'index'],
+            axis    =1,
+            inplace =True
+        )
+
         return df
 
+
 def get_team_misc(team, season_end_year):
+    print("get_team_misc")
     r = get(f'https://www.basketball-reference.com/teams/{team}/{season_end_year}.html',
             )
+    print(r)
     df = None
     if r.status_code == 200:
         soup = BeautifulSoup(r.content, 'html.parser')
@@ -143,6 +205,7 @@ def get_team_misc(team, season_end_year):
 
 
 def fix_names(df):
+    print("fix_names")
     df['PLAYER'] = df['PLAYER'].str.upper()
     df['PLAYER'] = df['PLAYER'].str.replace('.','').str.replace("'",'').str.replace(' (TW)','')
     df['PLAYER'] = df['PLAYER'].apply(unidecode.unidecode)
