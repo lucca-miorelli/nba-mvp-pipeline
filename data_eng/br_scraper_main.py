@@ -34,7 +34,7 @@ advanced = pd.DataFrame()
 infos = pd.DataFrame()
 teams = pd.DataFrame()
 
-time_sleep = 6
+time_sleep = 6.5
 
 # Pegando dados para 2022-23
 for season in SEASON:
@@ -140,6 +140,31 @@ df = df.merge(teams, on=['TEAM','SEASON','PCT'],how='left', validate='m:1')
 
 df = df.fillna(-1)
 
+numeric_columns = [
+    "TS%_ADVANCED",
+    "3PAr_ADVANCED",
+    "FTr_ADVANCED",
+    "ORB%_ADVANCED",
+    "DRB%_ADVANCED",
+    "TRB%_ADVANCED",
+    "AST%_ADVANCED",
+    "STL%_ADVANCED",
+    "BLK%_ADVANCED",
+    "TOV%_ADVANCED",
+    "USG%_ADVANCED",
+    "OWS_ADVANCED",
+    "DWS_ADVANCED",
+    "WS_ADVANCED",
+    "WS/48_ADVANCED",
+    "OBPM_ADVANCED",
+    "DBPM_ADVANCED",
+    "BPM_ADVANCED",
+    "VORP_ADVANCED",
+]
+
+
+df[numeric_columns] = df[numeric_columns].apply(pd.to_numeric)
+
 print("This is final df")
 print(df.head())
 print(df.describe())
@@ -150,15 +175,9 @@ print(df["TS%_ADVANCED"])
 print("printing dtypes...")
 print(df.dtypes)
 
-df.to_csv(
-    path=os.path.join("data", "test.csv"),
-    index=False
-)
-
 df.to_parquet(
     path=PATH_SAVE.format(
         str(datetime.today().strftime('%d_%m_%y'))
     ),
     index=False
 )
-
