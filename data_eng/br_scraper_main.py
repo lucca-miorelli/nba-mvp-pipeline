@@ -24,6 +24,7 @@ FRANCHISES = [
     'MIN','CLE','OKC','ORL','DET','HOU'
 ]
 
+TIME_SLEEP = 6.5
 
 ###############################################################################
 #                                   SCRIPT                                    #
@@ -34,7 +35,6 @@ advanced = pd.DataFrame()
 infos = pd.DataFrame()
 teams = pd.DataFrame()
 
-time_sleep = 6.5
 
 # Pegando dados para 2022-23
 for season in SEASON:
@@ -49,14 +49,14 @@ for season in SEASON:
             team = team[['G_TEAM','W','TEAM','SEASON']]
             team['PCT'] = team['W']/team['G_TEAM']
             teams = pd.concat([teams,team], ignore_index=True)
-            time.sleep(time_sleep)
+            time.sleep(TIME_SLEEP)
 
             # Informações gerais jogador
             info = get_roster(franchise, season)
             print(info)
             info['SEASON'] = team['SEASON'].iloc[0]
             infos = pd.concat([infos,info], ignore_index=True)
-            time.sleep(time_sleep)
+            time.sleep(TIME_SLEEP)
             
             # Stats avançadas
             avancado = get_roster_stats(franchise, season, data_format='ADVANCED', playoffs=False)
@@ -67,7 +67,7 @@ for season in SEASON:
                             'Unnamed: 24','Unnamed: 19']:
                     avancado = avancado.rename(columns={x:x+'_ADVANCED'})
             advanced = pd.concat([advanced,avancado], ignore_index=True)
-            time.sleep(time_sleep)
+            time.sleep(TIME_SLEEP)
 
             # Stats por jogo
             pergame = get_roster_stats(franchise, season, data_format='PER_GAME', playoffs=False)
@@ -87,7 +87,7 @@ for season in SEASON:
                         print(e)
 
             per_game_total = pd.concat([per_game_total,pergame], ignore_index=True)
-            time.sleep(time_sleep)
+            time.sleep(TIME_SLEEP)
         except Exception as e:
             # Time não existia na temporada
             print(e)
@@ -177,7 +177,7 @@ print(df.dtypes)
 
 df.to_parquet(
     path=PATH_SAVE.format(
-        str(datetime.today().strftime('%d_%m_%y'))
+        str("17_11_22")
     ),
     index=False
 )
