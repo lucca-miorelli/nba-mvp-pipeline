@@ -177,7 +177,7 @@ print(df.dtypes)
 
 df.to_parquet(
     path=PATH_SAVE.format(
-        str("17_11_22")
+        str(datetime.today().strftime("%d_%m_%y"))
     ),
     index=False
 )
