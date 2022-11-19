@@ -1,3 +1,5 @@
 .venv
 data
 */__pycache__
+machine_learning/models/*
+machine_learning/predictions/*
