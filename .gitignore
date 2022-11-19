@@ -3,3 +3,11 @@ data
 */__pycache__
 machine_learning/models/*
 machine_learning/predictions/*
+
+# infrastructure sensitive
+infrastructure/.terraform*
+infrastructure/variables.tf
+infrastructure/*.tfstate
+
+# credentials
+credentials.conf
