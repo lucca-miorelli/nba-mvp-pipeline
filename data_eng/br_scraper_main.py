@@ -5,6 +5,7 @@ import unidecode
 from datetime import datetime
 import time
 import os
+import awswrangler as wr
 
 from br_scraper_func import get_team_misc, get_roster_stats, get_roster, fix_names
 
@@ -175,9 +176,16 @@ print(df["TS%_ADVANCED"])
 print("printing dtypes...")
 print(df.dtypes)
 
+# SAVE LOCALLY
 df.to_parquet(
     path=PATH_SAVE.format(
         str(datetime.today().strftime("%d_%m_%y"))
     ),
     index=False
+)
+
+# SAVE IN S3
+wr.s3.to_parquet(
+    df=df,
+    path="s3://nba-mvp-pipeline/data/",
 )
