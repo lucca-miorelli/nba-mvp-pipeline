@@ -187,5 +187,6 @@ df.to_parquet(
 # SAVE IN S3
 wr.s3.to_parquet(
     df=df,
-    path="s3://nba-mvp-pipeline/data/",
+    path="s3://nba-mvp-pipeline/data/{}.parquet"\
+        .format(datetime.today().strftime("%d_%m_%y")),
 )
