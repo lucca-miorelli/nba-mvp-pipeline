@@ -239,52 +239,35 @@ def get_scores():
     rank_f = []
 
     for i in range(0,10):
-        # 1º Critério: maioria dentre os 5 modelos
-        n_vzs = rank_t[i].value_counts().sort_values(ascending=False)[0]
-        player = rank_t[i].value_counts().sort_values(ascending=False).index[0]
         
-        k = 1
-        while player in rank_f:
-            n_vzs = rank_t[i].value_counts().sort_values(ascending=False)[k]
-            player = rank_t[i].value_counts().sort_values(ascending=False).index[k]
-            k+=1
+        rank_apoio = pd.DataFrame(rank_t[i])
+
+        if rank_f != []:
+            for player in rank_f:
+                rank_apoio = rank_apoio[rank_apoio[i]!=player]
+
+        # 1º Critério: maioria dentre os 5 modelos
+        n_vzs = rank_apoio[i].value_counts().sort_values(ascending=False)[0]
+        player = rank_apoio[i].value_counts().sort_values(ascending=False).index[0]
         
         if n_vzs >= 3:
             rank_f.append(player)
-            
-        # 2º Critério: maioria dentre SVM, Gradient Boosting e LGBM
+                
+        # 2º Critério: soma das MVP Shares
         else:
-            rank_2 = rank_t.drop(['MVP RANK Random Forest','MVP RANK AdaBoost'], axis=0)
-            
-            n_vzs = rank_2[i].value_counts().sort_values(ascending=False)[0]
-            player = rank_2[i].value_counts().sort_values(ascending=False).index[0]
-            
-            j = 1
-            while player in rank_f:
-                n_vzs = rank_2[i].value_counts().sort_values(ascending=False)[j]
-                player = rank_2[i].value_counts().sort_values(ascending=False).index[j]
-                j+=1
-            
-            if n_vzs >= 2:
-                rank_f.append(player)
+            players = rank_apoio[i].value_counts().sort_values(ascending=False).index.to_list()
                 
-            # 3º Critério: soma das MVP Shares
-            else:
-                players = rank_t[i].value_counts().sort_values(ascending=False).index.to_list()
-                
-                players = [x for x in players if x not in rank_f]
-                
-                mvp_share = pd.DataFrame(columns=['MVP SHARE'],index=players)
-                for player in players:
-                    sum_mvp_s = 0
-                    for model in modelos:
-                        apoio = rank[['MVP RANK '+model,'MVP SHARE '+model]]
-                        mvp_s = apoio[apoio['MVP RANK '+model]==player]['MVP SHARE '+model].sum()
-                        sum_mvp_s = sum_mvp_s + mvp_s
-                    mvp_share['MVP SHARE'][mvp_share.index==player] = sum_mvp_s
+            mvp_share = pd.DataFrame(columns=['MVP SHARE'],index=players)
+            for player in players:
+                sum_mvp_s = 0
+                for model in modelos:
+                    apoio = rank[['MVP RANK '+model,'MVP SHARE '+model]]
+                    mvp_s = apoio[apoio['MVP RANK '+model]==player]['MVP SHARE '+model].sum()
+                    sum_mvp_s = sum_mvp_s + mvp_s
+                mvp_share['MVP SHARE'][mvp_share.index==player] = sum_mvp_s
                     
-                rank_f.append(mvp_share.sort_values(by='MVP SHARE',ascending=False).index[0])
-            
+            rank_f.append(mvp_share.sort_values(by='MVP SHARE',ascending=False).index[0])
+                
     rank['MVP RANK FINAL'] = rank_f
 
     rank.to_csv(path_data+sep+'MVP_Rank_'+today+'.csv',
@@ -387,4 +370,3 @@ class MVP_Service():
 
     def MVP_pipeline(self):
         model_pipeline()
-    
