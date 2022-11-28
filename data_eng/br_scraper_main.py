@@ -6,6 +6,7 @@ from datetime import datetime
 import time
 import os
 import awswrangler as wr
+import boto3
 
 from br_scraper_func import get_team_misc, get_roster_stats, get_roster, fix_names
 
@@ -26,6 +27,13 @@ FRANCHISES = [
 ]
 
 TIME_SLEEP = 6.5
+
+AWS_PROFILE = "lucca"
+
+# AWS PROFILE CREDENTIALS
+boto3_session = boto3.Session(
+    profile_name=AWS_PROFILE
+)
 
 ###############################################################################
 #                                   SCRIPT                                    #
@@ -196,4 +204,5 @@ finally:
         df=df,
         path="s3://nba-mvp-pipeline/data/{}.parquet"\
             .format(datetime.today().strftime("%d_%m_%y")),
+        boto3_session=boto3_session
     )
