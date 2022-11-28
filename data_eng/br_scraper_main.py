@@ -92,101 +92,108 @@ for season in SEASON:
         except Exception as e:
             # Time não existia na temporada
             print(e)
-            raise Exception
+            # raise Exception
+            pass
             
     print(season)
 
 
 ### TRATAMENTO VARIÁVEIS ###
 
-# Marcação College
-infos['COLLEGE'] = np.where(infos['COLLEGE'].notna(),1,0)
-# Marcação americano
-infos['NATIONALITY_US'] = np.where(infos['NATIONALITY']=='US',1,0)
-# Retirando colunas desnecessárias
-infos = infos.drop(['NUMBER','POS','BIRTH_DATE',
-                    'NATIONALITY'],axis=1)
-# Retirando jogadores trocados
-infos = infos.drop_duplicates(['PLAYER','SEASON'], keep=False, ignore_index=True)
-infos = infos.fillna(0)
-# Rookie = experience 0
-infos['EXPERIENCE'] = (infos['EXPERIENCE'].replace('R',0)).astype(int)
-# Altura em cm
-infos['HEIGHT'] = ((infos['HEIGHT'].astype(str).str.split('-').str[0]).astype(int)*30.48)+((infos['HEIGHT'].astype(str).str.split('-').str[1]).astype(int)*2.54)
-# Peso em kg
-infos['WEIGHT'] = infos['WEIGHT']*0.453592
-infos['IMC'] = infos['WEIGHT']/(infos['HEIGHT']/100)**2
-              
-# Retirando colunas repetidas/vazias
-advanced = advanced.drop(['POS','AGE','TEAM','G','MP',
-                            'Unnamed: 24','Unnamed: 19'], axis=1)
-# Retirando jogadores trocados
-advanced = advanced.drop_duplicates(['PLAYER','SEASON'], keep=False, ignore_index=True)
-advanced = advanced.fillna(0)
+try:
+    # Marcação College
+    infos['COLLEGE'] = np.where(infos['COLLEGE'].notna(),1,0)
+    # Marcação americano
+    infos['NATIONALITY_US'] = np.where(infos['NATIONALITY']=='US',1,0)
+    # Retirando colunas desnecessárias
+    infos = infos.drop(['NUMBER','POS','BIRTH_DATE',
+                        'NATIONALITY'],axis=1)
+    # Retirando jogadores trocados
+    infos = infos.drop_duplicates(['PLAYER','SEASON'], keep=False, ignore_index=True)
+    infos = infos.fillna(0)
+    # Rookie = experience 0
+    infos['EXPERIENCE'] = (infos['EXPERIENCE'].replace('R',0)).astype(int)
+    # Altura em cm
+    infos['HEIGHT'] = ((infos['HEIGHT'].astype(str).str.split('-').str[0]).astype(int)*30.48)+((infos['HEIGHT'].astype(str).str.split('-').str[1]).astype(int)*2.54)
+    # Peso em kg
+    infos['WEIGHT'] = infos['WEIGHT']*0.453592
+    infos['IMC'] = infos['WEIGHT']/(infos['HEIGHT']/100)**2
+                
+    # Retirando colunas repetidas/vazias
+    advanced = advanced.drop(['POS','AGE','TEAM','G','MP',
+                                'Unnamed: 24','Unnamed: 19'], axis=1)
+    # Retirando jogadores trocados
+    advanced = advanced.drop_duplicates(['PLAYER','SEASON'], keep=False, ignore_index=True)
+    advanced = advanced.fillna(0)
 
-per_game_total = per_game_total.drop_duplicates(['PLAYER','SEASON'], keep=False, ignore_index=True)
-per_game_total[['FG%','FT%','2P%','3P%','eFG%']] = (per_game_total[['FG%','FT%','2P%','3P%','eFG%']]).astype(float)
-per_game_total = per_game_total.fillna(0)
+    per_game_total = per_game_total.drop_duplicates(['PLAYER','SEASON'], keep=False, ignore_index=True)
+    per_game_total[['FG%','FT%','2P%','3P%','eFG%']] = (per_game_total[['FG%','FT%','2P%','3P%','eFG%']]).astype(float)
+    per_game_total = per_game_total.fillna(0)
 
-df = per_game_total.merge(advanced, on=['PLAYER','SEASON'], how='left', validate='1:1')
-df = df.merge(infos, on=['PLAYER','SEASON'],how='left', validate='m:1')
-df = df.merge(teams, on=['TEAM','SEASON'],how='left', validate='m:1')
+    df = per_game_total.merge(advanced, on=['PLAYER','SEASON'], how='left', validate='1:1')
+    df = df.merge(infos, on=['PLAYER','SEASON'],how='left', validate='m:1')
+    df = df.merge(teams, on=['TEAM','SEASON'],how='left', validate='m:1')
 
-# Criando SEED
-# P/2022-23:
-teams = teams[['TEAM','SEASON','PCT']][teams['SEASON']=='2022-23'].sort_values(by='PCT',ascending=False).reset_index(drop=True)
-teams['SEED'] = teams.index + 1
+    # Criando SEED
+    # P/2022-23:
+    teams = teams[['TEAM','SEASON','PCT']][teams['SEASON']=='2022-23'].sort_values(by='PCT',ascending=False).reset_index(drop=True)
+    teams['SEED'] = teams.index + 1
 
-df = df.merge(teams, on=['TEAM','SEASON','PCT'],how='left', validate='m:1')
+    df = df.merge(teams, on=['TEAM','SEASON','PCT'],how='left', validate='m:1')
 
-df = df.fillna(-1)
+    df = df.fillna(-1)
 
-numeric_columns = [
-    "TS%_ADVANCED",
-    "3PAr_ADVANCED",
-    "FTr_ADVANCED",
-    "ORB%_ADVANCED",
-    "DRB%_ADVANCED",
-    "TRB%_ADVANCED",
-    "AST%_ADVANCED",
-    "STL%_ADVANCED",
-    "BLK%_ADVANCED",
-    "TOV%_ADVANCED",
-    "USG%_ADVANCED",
-    "OWS_ADVANCED",
-    "DWS_ADVANCED",
-    "WS_ADVANCED",
-    "WS/48_ADVANCED",
-    "OBPM_ADVANCED",
-    "DBPM_ADVANCED",
-    "BPM_ADVANCED",
-    "VORP_ADVANCED",
-]
+    numeric_columns = [
+        "TS%_ADVANCED",
+        "3PAr_ADVANCED",
+        "FTr_ADVANCED",
+        "ORB%_ADVANCED",
+        "DRB%_ADVANCED",
+        "TRB%_ADVANCED",
+        "AST%_ADVANCED",
+        "STL%_ADVANCED",
+        "BLK%_ADVANCED",
+        "TOV%_ADVANCED",
+        "USG%_ADVANCED",
+        "OWS_ADVANCED",
+        "DWS_ADVANCED",
+        "WS_ADVANCED",
+        "WS/48_ADVANCED",
+        "OBPM_ADVANCED",
+        "DBPM_ADVANCED",
+        "BPM_ADVANCED",
+        "VORP_ADVANCED",
+    ]
 
 
-df[numeric_columns] = df[numeric_columns].apply(pd.to_numeric)
+    df[numeric_columns] = df[numeric_columns].apply(pd.to_numeric)
 
-print("This is final df")
-print(df.head())
-print(df.describe())
+    print("This is final df")
+    print(df.head())
+    print(df.describe())
 
-print("This is final df TS%_ADVANCED")
-print(df["TS%_ADVANCED"])
+    print("This is final df TS%_ADVANCED")
+    print(df["TS%_ADVANCED"])
 
-print("printing dtypes...")
-print(df.dtypes)
+    print("printing dtypes...")
+    print(df.dtypes)
 
+except Exception as e:
+    print(e)
+    pass
+
+finally:
 # SAVE LOCALLY
-df.to_parquet(
-    path=PATH_SAVE.format(
-        str(datetime.today().strftime("%d_%m_%y"))
-    ),
-    index=False
-)
+    df.to_parquet(
+        path=PATH_SAVE.format(
+            str(datetime.today().strftime("%d_%m_%y"))
+        ),
+        index=False
+    )
 
-# SAVE IN S3
-wr.s3.to_parquet(
-    df=df,
-    path="s3://nba-mvp-pipeline/data/{}.parquet"\
-        .format(datetime.today().strftime("%d_%m_%y")),
-)
+    # SAVE IN S3
+    wr.s3.to_parquet(
+        df=df,
+        path="s3://nba-mvp-pipeline/data/{}.parquet"\
+            .format(datetime.today().strftime("%d_%m_%y")),
+    )
