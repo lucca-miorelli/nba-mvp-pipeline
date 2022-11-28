@@ -20,10 +20,12 @@ provider "aws" {
 #                                   S3 BUCKET                                  #
 ################################################################################
 
+# Creates S3 Bucket
 resource "aws_s3_bucket" "nba_mvp_bucket" {
   bucket = var.s3_bucket_name
 }
 
+# Configure Bucket ACL as private
 resource "aws_s3_bucket_acl" "nba_mvp_bucket_acl" {
   bucket = aws_s3_bucket.nba_mvp_bucket.id
   acl = "private"
