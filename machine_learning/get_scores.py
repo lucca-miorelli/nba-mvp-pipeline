@@ -91,108 +91,106 @@ def get_scores():
 
     rank = create_rank(results, 10)
 
+    # Aplicando critérios p/definir rank final
+    rank_columns = [x for x in rank.columns if x.startswith('MVP RANK ')]
+    rank_t = rank[rank_columns].T
+    
+    rank_f = []
+
+    for i in range(0,10):
+        # 1º Critério: maioria dentre os 5 modelos
+        n_vzs = rank_t[i].value_counts().sort_values(ascending=False)[0]
+        player = rank_t[i].value_counts().sort_values(ascending=False).index[0]
+        
+        k = 1
+        while player in rank_f:
+            n_vzs = rank_t[i].value_counts().sort_values(ascending=False)[k]
+            player = rank_t[i].value_counts().sort_values(ascending=False).index[k]
+            k+=1
+        
+        if n_vzs >= 3:
+            rank_f.append(player)
+            
+        # 2º Critério: maioria dentre SVM, Gradient Boosting e LGBM
+        else:
+            rank_2 = rank_t.drop(['MVP RANK Random Forest','MVP RANK AdaBoost'], axis=0)
+            
+            n_vzs = rank_2[i].value_counts().sort_values(ascending=False)[0]
+            player = rank_2[i].value_counts().sort_values(ascending=False).index[0]
+            
+            j = 1
+            while player in rank_f:
+                n_vzs = rank_2[i].value_counts().sort_values(ascending=False)[j]
+                player = rank_2[i].value_counts().sort_values(ascending=False).index[j]
+                j+=1
+            
+            if n_vzs >= 2:
+                rank_f.append(player)
+                
+            # 3º Critério: soma das MVP Shares
+            else:
+                players = rank_t[i].value_counts().sort_values(ascending=False).index.to_list()
+                
+                players = [x for x in players if x not in rank_f]
+                
+                mvp_share = pd.DataFrame(columns=['MVP SHARE'],index=players)
+                for player in players:
+                    sum_mvp_s = 0
+                    for model in modelos:
+                        apoio = rank[['MVP RANK '+model,'MVP SHARE '+model]]
+                        mvp_s = apoio[apoio['MVP RANK '+model]==player]['MVP SHARE '+model].sum()
+                        sum_mvp_s = sum_mvp_s + mvp_s
+                    mvp_share['MVP SHARE'][mvp_share.index==player] = sum_mvp_s
+                    
+                rank_f.append(mvp_share.sort_values(by='MVP SHARE',ascending=False).index[0])
+            
+    rank['MVP RANK FINAL'] = rank_f
+
     rank.to_csv(
         path_or_buf=os.path.join("machine_learning", "predictions", f"rank_{today}.csv")
     )
 
-get_scores()
+    # Gerar df do rank final c/stats
+    get_final_rank(rank, df)
 
-
-#     # Aplicando critérios p/definir rank final
-#     rank_columns = [x for x in rank.columns if x.startswith('MVP RANK ')]
-#     rank_t = rank[rank_columns].T
+    # Gerar df com evolução do rank final
+    # get_evolution()
     
-#     rank_f = []
+    # Gerar gráficos SHAP
+    # get_shap(X, scaled_X)
 
-#     for i in range(0,10):
-#         # 1º Critério: maioria dentre os 5 modelos
-#         n_vzs = rank_t[i].value_counts().sort_values(ascending=False)[0]
-#         player = rank_t[i].value_counts().sort_values(ascending=False).index[0]
-        
-#         k = 1
-#         while player in rank_f:
-#             n_vzs = rank_t[i].value_counts().sort_values(ascending=False)[k]
-#             player = rank_t[i].value_counts().sort_values(ascending=False).index[k]
-#             k+=1
-        
-#         if n_vzs >= 3:
-#             rank_f.append(player)
-            
-#         # 2º Critério: maioria dentre SVM, Gradient Boosting e LGBM
-#         else:
-#             rank_2 = rank_t.drop(['MVP RANK Random Forest','MVP RANK AdaBoost'], axis=0)
-            
-#             n_vzs = rank_2[i].value_counts().sort_values(ascending=False)[0]
-#             player = rank_2[i].value_counts().sort_values(ascending=False).index[0]
-            
-#             j = 1
-#             while player in rank_f:
-#                 n_vzs = rank_2[i].value_counts().sort_values(ascending=False)[j]
-#                 player = rank_2[i].value_counts().sort_values(ascending=False).index[j]
-#                 j+=1
-            
-#             if n_vzs >= 2:
-#                 rank_f.append(player)
-                
-#             # 3º Critério: soma das MVP Shares
-#             else:
-#                 players = rank_t[i].value_counts().sort_values(ascending=False).index.to_list()
-                
-#                 players = [x for x in players if x not in rank_f]
-                
-#                 mvp_share = pd.DataFrame(columns=['MVP SHARE'],index=players)
-#                 for player in players:
-#                     sum_mvp_s = 0
-#                     for model in modelos:
-#                         apoio = rank[['MVP RANK '+model,'MVP SHARE '+model]]
-#                         mvp_s = apoio[apoio['MVP RANK '+model]==player]['MVP SHARE '+model].sum()
-#                         sum_mvp_s = sum_mvp_s + mvp_s
-#                     mvp_share['MVP SHARE'][mvp_share.index==player] = sum_mvp_s
-                    
-#                 rank_f.append(mvp_share.sort_values(by='MVP SHARE',ascending=False).index[0])
-            
-#     rank['MVP RANK FINAL'] = rank_f
-
-#     rank.to_csv(path_data+sep+'MVP_Rank_'+today+'.csv',
-#                 sep=',', decimal='.',index=False)
-
-#     # Gerar df do rank final c/stats
-#     get_final_rank(rank, df)
-
-#     # Gerar df com evolução do rank final
-#     get_evolution()
-    
-#     # Gerar gráficos SHAP
-#     get_shap(X, scaled_X)
-
-#     #return rank
+    return rank
 
 # #############################################
 
-# def get_final_rank(rank, df):
+def get_final_rank(rank, df):
 
-#     rank['Predicted MVP Rank'] = rank.index+1
-#     rank = rank.rename(columns={'MVP RANK FINAL':'PLAYER'})
-#     rank2 = rank[['Predicted MVP Rank','PLAYER']].merge(df,on='PLAYER',how='left',validate='1:1')
+    rank['Predicted MVP Rank'] = rank.index+1
+    rank = rank.rename(columns={'MVP RANK FINAL':'PLAYER'})
+    rank2 = rank[['Predicted MVP Rank','PLAYER']].merge(df,on='PLAYER',how='left',validate='1:1')
 
-#     rank2 = rank2[['Predicted MVP Rank',"PLAYER",'POS',"TEAM","AGE","HEIGHT",'G','MP_PERGAME','PTS_PERGAME','TRB_PERGAME',
-#                    'AST_PERGAME','STL_PERGAME','BLK_PERGAME','FG%','3P%','FT%','PER_ADVANCED','WS/48_ADVANCED','VORP_ADVANCED',
-#                    'PCT','SEED']]
+    rank2 = rank2[['Predicted MVP Rank',"PLAYER",'POS',"TEAM","AGE","HEIGHT",'G','MP_PERGAME','PTS_PERGAME','TRB_PERGAME',
+                   'AST_PERGAME','STL_PERGAME','BLK_PERGAME','FG%','3P%','FT%','PER_ADVANCED','WS/48_ADVANCED','VORP_ADVANCED',
+                   'PCT','SEED']]
     
-#     rank2['HEIGHT'] = round(rank2['HEIGHT'],1)
-#     rank2['PCT'] = round(rank2['PCT'],3)
-#     rank2['WS/48_ADVANCED'] = round(rank2['WS/48_ADVANCED'],3)
-#     rank2[['FG%','3P%','FT%']] = round(rank2[['FG%','3P%','FT%']]*100,2)
+    rank2['HEIGHT'] = round(rank2['HEIGHT'],1)
+    rank2['PCT'] = round(rank2['PCT'],3)
+    rank2['WS/48_ADVANCED'] = round(rank2['WS/48_ADVANCED'],3)
+    rank2[['FG%','3P%','FT%']] = round(rank2[['FG%','3P%','FT%']]*100,2)
 
-#     rank2 = rank2.rename(columns={'PLAYER':"Player",'POS':'Position','TEAM':"Team",'AGE':"Age",
-#                                   'HEIGHT':"Height (cm)",'G':'Games','MP_PERGAME':'Minutes',
-#                                   'PTS_PERGAME':'PTS','TRB_PERGAME':'REB','AST_PERGAME':'AST',
-#                                   'STL_PERGAME':'STL','BLK_PERGAME':'BLK','PER_ADVANCED':'PER',
-#                                   'WS/48_ADVANCED':'WS/48','VORP_ADVANCED':'VORP (Projected)',
-#                                   'PCT':'PCT Team','SEED':'Seed'})
+    rank2 = rank2.rename(columns={'PLAYER':"Player",'POS':'Position','TEAM':"Team",'AGE':"Age",
+                                  'HEIGHT':"Height (cm)",'G':'Games','MP_PERGAME':'Minutes',
+                                  'PTS_PERGAME':'PTS','TRB_PERGAME':'REB','AST_PERGAME':'AST',
+                                  'STL_PERGAME':'STL','BLK_PERGAME':'BLK','PER_ADVANCED':'PER',
+                                  'WS/48_ADVANCED':'WS/48','VORP_ADVANCED':'VORP (Projected)',
+                                  'PCT':'PCT Team','SEED':'Seed'})
 
-#     rank2.to_csv(path_data+sep+'MVP_Rank_Stats.csv',
-#                 sep=',', decimal='.',index=False)
+    rank2.to_csv(
+        path_or_buf=os.path.join("machine_learning", "predictions", f"MVP_Rank_Stats.csv"),
+        sep=',',
+        decimal='.',
+        index=False
+    )
 
 # #############################################
 
@@ -232,3 +230,7 @@ get_scores()
 
 #         shap.summary_plot(shap_values, X, plot_type='violin', show=False)
 #         plt.savefig(path_data+sep+model+'_SHAP.png', format='png', dpi=700, bbox_inches='tight')
+
+
+rank = get_scores()
+print(rank)
