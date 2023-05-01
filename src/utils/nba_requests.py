@@ -69,26 +69,36 @@ class NbaAPI(object):
             )
             ```
         """
+
+        if parameters:
+            self.parameters = parameters
+        else:
+            self.parameters = dict(
+                LeagueID=LeagueID,
+                PerMode=PerMode,
+                Scope=Scope,
+                Season=Season,
+                SeasonType=SeasonType,
+                StatCategory=StatCategory
+            )
+
+        # Adds endpoint to base_url
         base_url = self.base_url.format(endpoint=endpoint)
-        # self.parameters = parameters
 
-        # print(parameters)
-
+        # Creates parameter string manually
         parameter_string = '&'.join(
             '{}={}'.format(
                 key, ''
                 if val is None
                 else str(val)
-            ) for key, val in parameters.items()
+            ) for key, val in self.parameters.items()
         )
 
+        # Concatenates base_url and parameter_string
         url = "{}?{}".format(base_url, parameter_string)
 
-        # print(base_url)
-        # print(endpoint)
-        # print(parameter_string)
-        # print(url)
 
+        # GET request to specific endpoint+parameters
         response = requests.get(
             url=url
         )
