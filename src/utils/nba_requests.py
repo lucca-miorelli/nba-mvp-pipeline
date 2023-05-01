@@ -103,11 +103,17 @@ class NbaAPI(object):
             url=url
         )
 
-        logger.debug(
-            msg=\
-            "Response: {}".format(json.dumps(response.json(), indent=4))
-        )
+        try:
+            response = requests.get(
+                url=url
+            )
+            response.raise_for_status()  # Raise exception for non-OK response status codes
+        except requests.exceptions.RequestException as e:
+            raise RequestError(f"Failed to retrieve data from {url}. Error: {e}")
 
-
+        return response.json()
 
         
+class RequestError(Exception):
+    """Custom exception class for request errors."""
+    pass
