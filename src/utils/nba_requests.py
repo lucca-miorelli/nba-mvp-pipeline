@@ -8,7 +8,7 @@ from typing import Union, Dict, Any
 class NbaAPI(object):
 
     """
-    For now, this will only support leagueLeaders endpoint.
+    WIP: Adapting to support other endpoint calls.
     """
 
     def __init__(self):
@@ -17,23 +17,22 @@ class NbaAPI(object):
         self.parameters = None
         self.headers = None
 
-    def get_request(
+
+    def get_leaders(
             self
-            ,endpoint:str
-            ,parameters:dict=None
-            ,headers:str=None
-            ,LeagueID:str=None
-            ,PerMode:str=None
-            ,Scope:str=None
-            ,Season:str=None
-            ,SeasonType:str=None
-            ,StatCategory:str=None
-        ) -> Union[Dict[str, Any], str]:
+            ,parameters: dict = None
+            ,LeagueID: str = None
+            ,PerMode: str = None
+            ,Scope: str = None
+            ,Season: str = None
+            ,SeasonType: str = None
+            ,StatCategory: str = None
+    ) -> Union[str, dict]:
+        
         """
-        Sends a GET request to the specified API endpoint with optional parameters and headers.
+        Sends a GET request to the NBA API `leagueLeaders` endpoint and returns the response as JSON.
 
         Args:
-            endpoint (str): The endpoint to send the request to.
             parameters (dict): Optional dictionary of query string parameters to include in the request.
             headers (str): Optional dictionary of headers to include in the request.
             LeagueID (str): Optional league ID parameter.
@@ -47,14 +46,10 @@ class NbaAPI(object):
             Union[Dict[str, Any], str]: If the request is successful, returns the response data in JSON format. Otherwise,
             returns an error message.
 
-        Raises:
-            RequestError: If the response status code is not 200 (OK).
-        
         Example:
             To get the League Leaders for the 2023-23 regular season, use the following code:
             ```
             nba_api = NBA_API()
-            endpoint = 'leagueLeaders'
             parameters = dict(
                 LeagueID='00',
                 PerMode='Totals',
@@ -63,17 +58,18 @@ class NbaAPI(object):
                 SeasonType='Regular%20Season',
                 StatCategory='PTS'
             )
-            data = nba_api.get_request(
-                endpoint=endpoint,
+            data = nba_api.get_leaders(
                 parameters=parameters
             )
             ```
         """
 
+        endpoint = 'leagueLeaders'
+
         if parameters:
-            self.parameters = parameters
+            return self._get_request(endpoint, parameters)
         else:
-            self.parameters = dict(
+            parameters = dict(
                 LeagueID=LeagueID,
                 PerMode=PerMode,
                 Scope=Scope,
@@ -81,6 +77,32 @@ class NbaAPI(object):
                 SeasonType=SeasonType,
                 StatCategory=StatCategory
             )
+
+            return self._get_request(endpoint, parameters)
+
+    def _get_request(
+            self
+            ,endpoint:str
+            ,parameters:dict=None
+            ,headers:str=None
+        ) -> Union[Dict[str, Any], str]:
+        """
+        Auxiliar functions that sends a GET request to the specified API endpoint with optional parameters and headers.
+
+        Args:
+            endpoint (str): The endpoint to send the request to.
+            parameters (dict): Optional dictionary of query string parameters to include in the request.
+            headers (str): Optional dictionary of headers to include in the request.
+
+        Returns:
+            Union[Dict[str, Any], str]: If the request is successful, returns the response data in JSON format. Otherwise,
+            returns an error message.
+
+        Raises:
+            RequestError: If the response status code is not 200 (OK).
+        """
+
+        self.parameters = parameters
 
         # Adds endpoint to base_url
         base_url = self.base_url.format(endpoint=endpoint)
