@@ -161,10 +161,27 @@ class NbaAPI(object):
         # Concatenates base_url and parameter_string
         url = "{}?{}".format(base_url, parameter_string)
 
+        headers = {
+            "Accept": "*/*",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Accept-Language": "pt-PT,pt;q=0.9,en-US;q=0.8,en;q=0.7",
+            "Connection": "keep-alive",
+            "Host": "stats.nba.com",
+            "Origin": "https://www.nba.com",
+            "Referer": "https://www.nba.com/",
+            "sec-ch-ua": '"Chromium";v="112", "Google Chrome";v="112", "Not:A-Brand";v="99"',
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": '"Windows"',
+            "Sec-Fetch-Dest": "empty",
+            "Sec-Fetch-Mode": "cors",
+            "Sec-Fetch-Site": "same-site",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36"
+        }
 
         # GET request to specific endpoint+parameters
         response = requests.get(
             url=url
+            ,headers=headers
         )
 
         try:
