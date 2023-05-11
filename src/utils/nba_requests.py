@@ -192,7 +192,7 @@ class NbaAPI(object):
         except requests.exceptions.RequestException as e:
             raise RequestError(f"Failed to retrieve data from {url}. Error: {e}")
 
-        return response.json()
+        return response
 
         
 class RequestError(Exception):
