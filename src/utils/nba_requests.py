@@ -80,6 +80,48 @@ class NbaAPI(object):
 
             return self._get_request(endpoint, parameters)
 
+    def get_players(
+            self
+            ,parameters: dict = None
+            ,Country: str = ''
+            ,DraftPick: str = ''
+            ,DraftRound: str = ''
+            ,DraftYear: str = ''
+            ,Height: str = ''
+            ,Historical: str = '1'
+            ,LeagueID: str = '00'
+            ,Season: str = '2022-23'
+            ,SeasonType: str = 'Regular%20Season'
+            ,TeamID: str = '0'
+            ,Weight: str = ''
+    ) -> Union[str,dict]:
+        
+        """
+        THIS API CALL ALWAYS TIMEOUT.
+        Need to find other source to this data.
+        """
+
+        endpoint = 'playerindex'
+
+        if parameters:
+            return self._get_request(endpoint, parameters)
+        else:
+            parameters = dict(
+                Country = Country
+                ,DraftPick = DraftPick
+                ,DraftRound = DraftRound
+                ,DraftYear = DraftYear
+                ,Height = Height
+                ,Historical = Historical
+                ,LeagueID = LeagueID
+                ,Season = Season
+                ,SeasonType = SeasonType
+                ,TeamID = TeamID
+                ,Weight = Weight
+            )
+
+            return self._get_request(endpoint, parameters)
+
     def _get_request(
             self
             ,endpoint:str
