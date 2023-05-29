@@ -72,6 +72,13 @@ def join_dfs(df_per_game, df_totals):
     return df
 
 @task
+def join_advanced_stats(df_leaders, df_advanced):
+
+    df = df_leaders.merge(df_advanced, on='PLAYER_ID')
+
+    return df
+
+@task
 def extract_advanced_stats():
 
     stats = LeagueDashPlayerStats(
@@ -116,7 +123,7 @@ def pipeline_league_leaders():
     df_leaders = join_dfs(df_per_game, df_totals)
 
     # join advanced stats
-    df = df_leaders.merge(df_advanced, on='PLAYER_ID')
+    df = join_advanced_stats(df_leaders, df_advanced)
 
 
 
