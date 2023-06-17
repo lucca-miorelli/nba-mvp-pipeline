@@ -199,6 +199,6 @@ def nba_etl()->str:
 
     return json.dumps(dict(columns=df.columns.values.tolist()), indent=4)
 
-print(pipeline_league_leaders())
 
-# flow.register(project_name="NBA")
+if __name__ == '__main__':
+    nba_etl()
