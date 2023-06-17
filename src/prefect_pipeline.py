@@ -1,9 +1,22 @@
+################################################################################
+#                                  LIBRARIES                                   # 
+################################################################################
+
 from prefect import flow, task
 from utils.nba_requests import NbaAPI
 from nba_api.stats.endpoints.leaguedashplayerstats import LeagueDashPlayerStats
 import pandas as pd
 import json
 
+
+################################################################################
+#                                  FUNCTIONS                                   #
+################################################################################
+
+
+##################################
+##            TASKS            ###
+##################################
 
 @task(
     name="Extract League Leaders"
@@ -27,8 +40,6 @@ def extract_league_leaders(PerMode:str)->str:
 
     return response.json()
 
-
-
 @task(
     name="Create Per Game DataFrame"
     ,description="Creates a Pandas DataFrame from the response object."
@@ -51,7 +62,6 @@ def create_per_game_df(response:str=None)->pd.DataFrame:
 
     return df
 
-
 @task(
     name="Create Totals DataFrame"
     ,description="Creates a Pandas DataFrame from the response object."
@@ -70,7 +80,6 @@ def create_totals_df(response:str=None)->pd.DataFrame:
     )
 
     return df
-
 
 @task(
     name="Join DataFrames"
@@ -119,7 +128,11 @@ def extract_advanced_stats()->pd.DataFrame:
 
     return df
 
-# Create prefect flow named pipeline_league_leaders
+
+##################################
+##            FLOWS            ###
+##################################
+
 @flow(
     name="[EXTRACT] LeagueLeaders"
     ,description="Extract data from NBA.com/LeagueLeaders endpoint."
@@ -136,7 +149,6 @@ def pipeline_league_leaders()->tuple:
     # print(response_totals)
 
     return response_per_game, response_totals
-
 
 @flow(
     name="[EXTRACT] Advanced Stats"
@@ -177,7 +189,9 @@ def pipeline_transformation(
         return df_leaders
 
 
-
+######################################
+##            MAIN FLOW            ###
+######################################
 
 @flow(
     name="NBA Stats ETL"
@@ -193,12 +207,19 @@ def nba_etl()->str:
     response_advanced = pipeline_advanced_stats()
 
     # Transform LeagueLeaders data
-    df = pipeline_transformation(response_per_game, response_totals, response_advanced)
-
-    
+    df = pipeline_transformation(
+         response_per_game  =response_per_game
+        ,response_totals    =response_totals
+        ,response_advanced  =response_advanced
+    )
 
     return json.dumps(dict(columns=df.columns.values.tolist()), indent=4)
 
+
+
+################################################################################
+#                                    SCRIPT                                    #
+################################################################################
 
 if __name__ == '__main__':
     nba_etl()
