@@ -111,25 +111,66 @@ def pipeline_league_leaders():
     # Extract LeagueLeaders
     response_per_game   = extract_league_leaders(PerMode='PerGame')
     response_totals     = extract_league_leaders(PerMode='Totals')
+@flow(
+    name="[EXTRACT] Advanced Stats"
+    ,description="Extract data from NBA.com/AdvancedStats endpoint."
+)
+def pipeline_advanced_stats()->pd.DataFrame:
     
+        # Call extract_advanced_stats task
+        response_advanced = extract_advanced_stats()
+    
+        return response_advanced
+
+@flow(
+     name="[TRANSFORM] LeagueLeaders"
+    ,description="Transform data from NBA.com/LeagueLeaders endpoint."
+)
+def pipeline_transformation(
+     response_per_game
+     ,response_totals
+     ,response_advanced
+    )->pd.DataFrame:
+    
+        # Call create_per_game_df task
+        df_per_game = create_per_game_df(response_per_game)
+        print(df_per_game.head())
+    
+        # Call create_totals_df task
+        df_totals = create_totals_df(response_totals)
+        print(df_totals.head())
+
+        # Call join_dfs task
+        df_leaders = join_dfs(df_per_game, df_totals)
+
+        # Join LeagueLeaders and Advanced Stats
+        df = join_advanced_stats(df_leaders, response_advanced)
+
+    
+        return df_leaders
+
+
+
+
+@flow(
+    name="NBA Stats ETL"
+    ,description="Full ETL pipeline of NBA data."
+    ,version="v01"
+)
+def nba_etl()->str:
+
+    # Extract LeagueLeaders data
+    response_per_game, response_totals = pipeline_league_leaders()
+
     # Extract Advanced Stats
-    df_advanced         = extract_advanced_stats()
+    response_advanced = pipeline_advanced_stats()
 
-    # Return LeagueLeaders dataframes
-    df_per_game         = create_per_game_df(response_per_game)
-    df_totals           = create_totals_df(response_totals)
+    # Transform LeagueLeaders data
+    df = pipeline_transformation(response_per_game, response_totals, response_advanced)
 
-    # Join dataframes
-    df_leaders = join_dfs(df_per_game, df_totals)
-
-    # join advanced stats
-    df = join_advanced_stats(df_leaders, df_advanced)
-
-
+    
 
     return json.dumps(dict(columns=df.columns.values.tolist()), indent=4)
-
-
 
 print(pipeline_league_leaders())
 
