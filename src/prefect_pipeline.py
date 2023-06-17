@@ -6,11 +6,11 @@ import json
 
 
 @task(
-    name="Extract Data"
+    name="Extract League Leaders"
     ,description="Sends GET request to NBA endpoint, returns response object."
     ,tags=['extract']
 )
-def extract_league_leaders(PerMode:str):
+def extract_league_leaders(PerMode:str)->str:
 
     stats = NbaAPI()
 
@@ -29,8 +29,12 @@ def extract_league_leaders(PerMode:str):
 
 
 
-@task
-def create_per_game_df(response:str=None):
+@task(
+    name="Create Per Game DataFrame"
+    ,description="Creates a Pandas DataFrame from the response object."
+    ,tags=['transform']
+)
+def create_per_game_df(response:str=None)->pd.DataFrame:
 
     df = pd.DataFrame(
         data=response['resultSet']['rowSet'],
@@ -48,8 +52,12 @@ def create_per_game_df(response:str=None):
     return df
 
 
-@task
-def create_totals_df(response:str=None):
+@task(
+    name="Create Totals DataFrame"
+    ,description="Creates a Pandas DataFrame from the response object."
+    ,tags=['transform']
+)
+def create_totals_df(response:str=None)->pd.DataFrame:
 
     df = pd.DataFrame(
         data=response['resultSet']['rowSet'],
@@ -64,22 +72,34 @@ def create_totals_df(response:str=None):
     return df
 
 
-@task
-def join_dfs(df_per_game, df_totals):
+@task(
+    name="Join DataFrames"
+    ,description="Joins the PerGame and Totals DataFrames."
+    ,tags=['transform']
+)
+def join_dfs(df_per_game:pd.DataFrame, df_totals:pd.DataFrame)->pd.DataFrame:
 
     df = df_per_game.merge(df_totals, on='PLAYER_ID')
 
     return df
 
-@task
-def join_advanced_stats(df_leaders, df_advanced):
+@task(
+    name="Join Advanced Stats"
+    ,description="Joins the League Leaders DataFrame with the Advanced Stats DataFrame."
+    ,tags=['transform']
+)
+def join_advanced_stats(df_leaders:pd.DataFrame, df_advanced:pd.DataFrame)->pd.DataFrame:
 
     df = df_leaders.merge(df_advanced, on='PLAYER_ID')
 
     return df
 
-@task
-def extract_advanced_stats():
+@task(
+    name="Extract Advanced Stats"
+    ,description="Sends GET request to NBA endpoint, returns response object."
+    ,tags=['extract']
+)
+def extract_advanced_stats()->pd.DataFrame:
 
     stats = LeagueDashPlayerStats(
         per_mode_detailed="PerGame",
@@ -99,18 +119,25 @@ def extract_advanced_stats():
 
     return df
 
-
+# Create prefect flow named pipeline_league_leaders
 @flow(
-    name="NBA Players Statistics ETL"
-    ,description=\
-        "Extracts players's statistics from stats.nba.com/leagueLeaders."
-    ,version="v01"
-)
-def pipeline_league_leaders():
+    name="[EXTRACT] LeagueLeaders"
+    ,description="Extract data from NBA.com/LeagueLeaders endpoint."
 
-    # Extract LeagueLeaders
+)
+def pipeline_league_leaders()->tuple:
+
+    # Call extract_league_leaders task with PerMode='PerGame'
     response_per_game   = extract_league_leaders(PerMode='PerGame')
+    # print(response_per_game)
+
+    # Call extract_league_leaders task with PerMode='Totals'
     response_totals     = extract_league_leaders(PerMode='Totals')
+    # print(response_totals)
+
+    return response_per_game, response_totals
+
+
 @flow(
     name="[EXTRACT] Advanced Stats"
     ,description="Extract data from NBA.com/AdvancedStats endpoint."
