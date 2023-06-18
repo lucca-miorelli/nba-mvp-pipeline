@@ -7,6 +7,17 @@ from utils.nba_requests import NbaAPI
 from nba_api.stats.endpoints.leaguedashplayerstats import LeagueDashPlayerStats
 import pandas as pd
 import json
+import awswrangler as wr
+import boto3
+from datetime import datetime
+
+
+################################################################################
+#                                  CONSTANTS                                   # 
+################################################################################
+
+BUCKET_NAME = 'nba-mvp-pipeline'
+CURRENT_DAY = datetime.now().strftime('%Y_%m_%d')
 
 
 ################################################################################
@@ -128,6 +139,19 @@ def extract_advanced_stats()->pd.DataFrame:
 
     return df
 
+@task(
+    name="Load Data"
+    ,description="Loads data to S3"
+    ,tags=["load"]
+)
+def load_data(df):
+
+    wr.s3.to_parquet(
+        df=df
+        ,path=f"s3://{BUCKET_NAME}/data/raw/{CURRENT_DAY}_PLAYERS.parquet"
+    )
+     
+
 
 ##################################
 ##            FLOWS            ###
@@ -188,6 +212,16 @@ def pipeline_transformation(
     
         return df_leaders
 
+@flow(
+    name="[LOAD] NBA Data"
+    ,description="Save data to S3 bucket as parquet."
+)
+def pipeline_load(
+     df
+):
+    load_data(df)
+
+
 
 ######################################
 ##            MAIN FLOW            ###
@@ -212,6 +246,9 @@ def nba_etl()->str:
         ,response_totals    =response_totals
         ,response_advanced  =response_advanced
     )
+
+    # Load data to S3
+    pipeline_load(df)
 
     return json.dumps(dict(columns=df.columns.values.tolist()), indent=4)
 
