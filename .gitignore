@@ -5,10 +5,13 @@ machine_learning/models/*
 machine_learning/predictions/*
 
 # infrastructure sensitive
-infrastructure/.terraform*
-infrastructure/variables.tf
-infrastructure/*.tfstate
+**/.terraform*
+**/variables.tf
+**/*.tfstate
+**/*.tfstate.backup
+**/*.tfvars
 
 # credentials
 credentials.conf
 config/*
+*.pem
