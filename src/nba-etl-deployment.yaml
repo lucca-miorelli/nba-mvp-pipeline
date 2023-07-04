@@ -1,0 +1,54 @@
+###
+### A complete description of a Prefect Deployment for flow 'NBA Stats ETL'
+###
+name: NBA 2022-23 Season Stats Scrapper
+description: Full ETL pipeline of NBA data.
+version: v01
+# The work queue that will handle this deployment's runs
+work_queue_name: default
+work_pool_name: default-agent-pool
+tags:
+- etl
+- test
+parameters: {}
+schedule:
+  cron: 0 */4 * * *
+  timezone: null
+  day_or: true
+is_schedule_active: null
+infra_overrides: {}
+infrastructure:
+  type: process
+  env: {}
+  labels: {}
+  name: null
+  command: null
+  stream_output: true
+  working_dir: null
+  block_type_slug: process
+  _block_type_slug: process
+
+###
+### DO NOT EDIT BELOW THIS LINE
+###
+flow_name: NBA Stats ETL
+manifest_path: null
+storage:
+  repository: https://github.com/lucca-miorelli/nba-mvp-pipeline/
+  reference: prefect-pipeline
+  access_token: null
+  include_git_objects: true
+  _block_document_id: 7db7cd5a-b799-4023-9726-46c34910fa61
+  _block_document_name: test-gh
+  _is_anonymous: false
+  block_type_slug: github
+  _block_type_slug: github
+path: ''
+entrypoint: src\prefect_pipeline.py:nba_etl
+parameter_openapi_schema:
+  title: Parameters
+  type: object
+  properties: {}
+  required: null
+  definitions: null
+timestamp: '2023-07-04T12:19:21.700644+00:00'
