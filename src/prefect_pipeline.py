@@ -124,7 +124,8 @@ def extract_advanced_stats()->pd.DataFrame:
     stats = LeagueDashPlayerStats(
         per_mode_detailed="PerGame",
         league_id_nullable='00',
-        measure_type_detailed_defense='Advanced'
+        measure_type_detailed_defense='Advanced',
+        timeout=90
     )
 
     stats.get_request()
