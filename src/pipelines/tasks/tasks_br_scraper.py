@@ -57,3 +57,18 @@ def test_players_uniqueness(stats_t:list[str], stats_a:list[str])->None:
     print(set_t == set_a)
     print(set_t.difference(set_a)) 
     print(set_a.difference(set_t))
+
+
+@task(
+    name="Ingest Data",
+    description="Save data to S3 bucket as parquet.",
+    tags=["NBA", "Basketball-Reference", "Stats", "Ingestion"],
+)
+def load_data(df:pd.DataFrame, bucket_name:str, current_day:str)->None:
+
+    wr.s3.to_parquet(
+        df=df
+        ,path=f"s3://{bucket_name}/data/raw/players/{current_day}.parquet"
+    )
+
+    print("Data saved to S3 bucket.")
