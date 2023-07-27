@@ -1,5 +1,7 @@
 from BRScraper import nba
-from prefect import Task
+from prefect import task
+import pandas as pd
+import awswrangler as wr
 
 
 # @Task
