@@ -79,3 +79,15 @@ module "ec2_instance" {
   instance_name      = var.instance_name
   security_group_ids = var.security_group_ids
 }
+
+
+# ################################################################################
+# #                                    RDS INSTANCE                              #
+# ################################################################################
+
+# Create RDS instance
+module "rds_postgres" {
+  source = "../../modules/rds_postgres"
+
+  tags               = var.tags
+}
