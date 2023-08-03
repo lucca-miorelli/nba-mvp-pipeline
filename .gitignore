@@ -10,6 +10,8 @@ machine_learning/predictions/*
 **/*.tfstate
 **/*.tfstate.backup
 **/*.tfvars
+**/layers/*
+**/*.zip
 
 # credentials
 credentials.conf
