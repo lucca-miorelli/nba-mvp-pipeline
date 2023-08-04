@@ -17,11 +17,13 @@ def scrap_current_season_stats():
     
     # test_players_uniqueness(list_t, list_a)
 
+    # rename columns (transformation)
+
     merged_df = merge_dfs(df_totals, df_advanced, df_pergame)
 
     df = add_date_column(merged_df, CURRENT_DAY)
 
-    load_data(df, BUCKET_NAME, CURRENT_DAY)
+    # load_data(df, BUCKET_NAME, CURRENT_DAY)
 
 
 if __name__ == "__main__":

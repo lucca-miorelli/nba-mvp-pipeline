@@ -25,10 +25,33 @@ def get_stats(season:str=None, info:str=None)->pd.DataFrame:
 )
 def merge_dfs(df1:pd.DataFrame, df2:pd.DataFrame, df3:pd.DataFrame)->pd.DataFrame:
 
-    df = df1.merge(df2, on='Player')
-    df = df.merge(df3, on='Player')
+    df1_player = df1["Player"].unique()
+    df2_player = df2["Player"].unique()
+    df3_player = df3["Player"].unique()
 
-    print(df.head())
+    """
+    Check if the 'Player' column in each dataframe has the same values.
+    """
+
+    players1 = set(df1['Player'])
+    players2 = set(df2['Player'])
+    players3 = set(df3['Player'])
+
+    if players1 == players2 == players3:
+        print("True") 
+    else:
+        print("False")
+
+
+    print(f"df1: {df1.shape}\ndf2: {df2.shape}\ndf3: {df3.shape}\n")
+    print(f"df1: {len(df1_player)}\ndf2: {len(df2_player)}\ndf3: {len(df3_player)}\n")
+
+    print(df1.duplicated(subset=["Player", "Tm"]).any())
+
+    df = pd.merge(df1, df2, how="inner", on=["Player", "Tm"])
+    df = pd.merge(df, df3, how="inner", on=["Player", "Tm"])
+
+    print(df.shape)
 
     return df
 
