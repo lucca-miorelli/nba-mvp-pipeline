@@ -29,3 +29,6 @@ Get-Content $requirementsFile | ForEach-Object {
 #   $zipFile = Join-Path $installDir "$libName.zip"
 #   Compress-Archive -Path $libDir -DestinationPath $zipFile
 }
+
+## For pscyopg2 layer, I used it from this git repo
+# https://github.com/jkehler/awslambda-psycopg2/tree/master
