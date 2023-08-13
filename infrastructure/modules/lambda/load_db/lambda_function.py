@@ -2,6 +2,8 @@ import os
 import psycopg2
 import awswrangler as wr
 from sqlalchemy import create_engine
+import urllib.parse
+import json
 
 # rds settings
 DB_HOST = os.environ['DB_HOST']
@@ -13,8 +15,12 @@ DB_PASSWORD = os.environ['DB_PASSWORD']
 
 def lambda_handler(event, context):
     
+    print("Received event: " + json.dumps(event, indent=2) + '\n')
+    
+    key = urllib.parse.unquote_plus(event['Records'][0]['s3']['object']['key'], encoding='utf-8')
+    
     try:
-        df = wr.s3.read_parquet(path='s3://nba-mvp-pipeline/data/raw/players/2023_08_03.parquet')
+        df = wr.s3.read_parquet(path=f's3://nba-mvp-pipeline/{key}')
     except Exception as e:
         print(e)
     else:
