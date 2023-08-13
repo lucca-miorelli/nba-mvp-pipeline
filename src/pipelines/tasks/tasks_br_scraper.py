@@ -13,8 +13,24 @@ def get_stats(season:str=None, info:str=None)->pd.DataFrame:
     
     df = nba.get_stats(season=season, info=info)
 
-    print(f"Season: {season}\nInfo: {info}\n")
-    print(df.head())
+    # Process and rename columns based on selected info
+    if info in ("totals", "per_game"):
+        print(f"Processing {info} stats...")
+        df = df.drop(columns=['Pos', 'Age', 'G', 'Season'])
+        if info == "per_game":
+            print("Processing per_game stats...")
+            df = df.drop(columns=['GS'])
+            df = df.rename(columns={i: f"{i}_per_game" for i in df.columns if i not in ["Player", "Tm"]})
+        elif info == "totals":
+            print("Processing totals stats...")
+            df = df.drop(columns=['MP'])
+            df = df.rename(columns={i: f"{i}_totals" for i in df.columns if i not in ["Player", "Tm"]})
+    elif info == "advanced":
+        print("Processing advanced stats...")
+        df = df.rename(columns={i: f"{i}_advanced" for i in df.columns if i not in ["Player", "Tm", "Pos", "Age", "G", "MP", "Season"]})
+
+    # Logging information
+    print(f"Season: {season}\nInfo: {info}\nShape: {df.shape}\nColumns: {list(df.columns)}\nHead:\n{df.head()}")
 
     return df
 
