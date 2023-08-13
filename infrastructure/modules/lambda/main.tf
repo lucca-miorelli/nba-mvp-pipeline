@@ -5,9 +5,9 @@ resource "aws_lambda_function" "load_db" {
   function_name = "load_db"
   role          = aws_iam_role.lambda.arn
   handler       = "lambda_function.lambda_handler"
-  runtime       = "python3.10"
+  runtime       = "python3.9"
   timeout       = 300
-  memory_size   = 128
+  memory_size   = 500
 
   environment {
     variables = {
@@ -22,7 +22,7 @@ resource "aws_lambda_function" "load_db" {
   source_code_hash = "${data.archive_file.load_db.output_base64sha256}}"
 
   layers = [
-    "arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python310:3",
+    "arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python39:8",
     aws_lambda_layer_version.sqlalchemy.arn,
     aws_lambda_layer_version.psycopg2.arn
   ]
@@ -60,7 +60,7 @@ resource "aws_iam_role_policy_attachment" "lambda_s3_read" {
 # resource "aws_lambda_layer_version" "pandas" {
 #   layer_name = "pandas"
 #   compatible_runtimes = [
-#     "python3.10"
+#     "python3.9"
 #   ]
 
 #   filename         = data.archive_file.pandas.output_path
@@ -70,7 +70,7 @@ resource "aws_iam_role_policy_attachment" "lambda_s3_read" {
 resource "aws_lambda_layer_version" "psycopg2" {
   layer_name = "psycopg2"
   compatible_runtimes = [
-    "python3.10"
+    "python3.9"
   ]
 
   filename         = data.archive_file.psycopg2.output_path
@@ -80,7 +80,7 @@ resource "aws_lambda_layer_version" "psycopg2" {
 # resource "aws_lambda_layer_version" "pyarrow" {
 #   layer_name = "pyarrow"
 #   compatible_runtimes = [
-#     "python3.10"
+#     "python3.9"
 #   ]
 
 #   filename         = data.archive_file.pyarrow.output_path
@@ -90,7 +90,7 @@ resource "aws_lambda_layer_version" "psycopg2" {
 resource "aws_lambda_layer_version" "sqlalchemy" {
   layer_name = "sqlalchemy"
   compatible_runtimes = [
-    "python3.10"
+    "python3.9"
   ]
 
   filename         = data.archive_file.sqlalchemy.output_path
