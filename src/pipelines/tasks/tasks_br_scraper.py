@@ -9,8 +9,17 @@ import awswrangler as wr
     description="Get stats from basketball-reference.com",
     tags=["NBA", "Basketball-Reference", "Stats", "Extraction"],
 )
-def get_stats(season:str=None, info:str=None)->pd.DataFrame:
+def get_stats(season: str = "2022-23", info: str = "totals") -> pd.DataFrame:
+    """
+    Get player statistics from basketball-reference.com.
     
+    Args:
+        season (str): The NBA season.
+        info (str): The type of statistics.
+
+    Returns:
+        pd.DataFrame: A DataFrame containing player statistics.
+    """
     df = nba.get_stats(season=season, info=info)
 
     # Process and rename columns based on selected info
@@ -39,45 +48,59 @@ def get_stats(season:str=None, info:str=None)->pd.DataFrame:
     description="Merge totals, per_game, and advanced DataFrames into one.",
     tags=["NBA", "Basketball-Reference", "Stats", "Transformation"],
 )
-def merge_dfs(df1:pd.DataFrame, df2:pd.DataFrame, df3:pd.DataFrame)->pd.DataFrame:
-
-    df1_player = df1["Player"].unique()
-    df2_player = df2["Player"].unique()
-    df3_player = df3["Player"].unique()
-
+def merge_dfs(df1: pd.DataFrame, df2: pd.DataFrame, df3: pd.DataFrame) -> pd.DataFrame:
     """
-    Check if the 'Player' column in each dataframe has the same values.
-    """
+    Merge player statistics DataFrames into one.
 
+    Args:
+        df1 (pd.DataFrame): The first DataFrame.
+        df2 (pd.DataFrame): The second DataFrame.
+        df3 (pd.DataFrame): The third DataFrame.
+
+    Returns:
+        pd.DataFrame: A merged DataFrame.
+    """
+    # Check player uniqueness and DataFrame shapes
     players1 = set(df1['Player'])
     players2 = set(df2['Player'])
     players3 = set(df3['Player'])
-
     if players1 == players2 == players3:
-        print("True") 
+        print("All players are the same in each DataFrame.")
     else:
-        print("False")
+        print("[WARNING]: Players are not the same in each DataFrame.")
 
+    print(f"\nDataFrame shape:\ndf1: {df1.shape}\ndf2: {df2.shape}\ndf3: {df3.shape}\n")
+    print(f"DataFrame Unique Players:\ndf1: {len(players1)}\ndf2: {len(players2)}\ndf3: {len(players3)}\n")
 
-    print(f"df1: {df1.shape}\ndf2: {df2.shape}\ndf3: {df3.shape}\n")
-    print(f"df1: {len(df1_player)}\ndf2: {len(df2_player)}\ndf3: {len(df3_player)}\n")
+    # Check for duplicates in DataFrames
+    for i, df in enumerate([df1, df2, df3], start=1):
+        if df.duplicated(subset=["Player", "Tm"]).any():
+            print(f"df{i} has duplicates.")
 
-    print(df1.duplicated(subset=["Player", "Tm"]).any())
-
+    # Merge DataFrames
     df = pd.merge(df1, df2, how="inner", on=["Player", "Tm"])
     df = pd.merge(df, df3, how="inner", on=["Player", "Tm"])
 
-    print(df.shape)
+    # Logging information
+    print(f"Shape: {df.shape}\nColumns: {list(df.columns)}\nHead:\n{df.head()}")
 
     return df
 
-@task(
+@task
+def add_date_column(df: pd.DataFrame, snapshot_date: str) -> pd.DataFrame:
+    """
+    Add a snapshot date column to the DataFrame.
 
-)
-def add_date_column(df:pd.DataFrame, snapshot_date:str)->pd.DataFrame:
-    
+    Args:
+        df (pd.DataFrame): The input DataFrame.
+        snapshot_date (str): The snapshot date.
+
+    Returns:
+        pd.DataFrame: The DataFrame with the added snapshot date column.
+    """
     df['snapshot_date'] = snapshot_date
 
+    # Logging information
     print(df.head())
 
     return df
@@ -88,13 +111,23 @@ def add_date_column(df:pd.DataFrame, snapshot_date:str)->pd.DataFrame:
     description="Test keystring in each dataframe to ensure uniqueness.",
     tags=["NBA", "Basketball-Reference", "Stats", "Test", "Data Quality"],
 )
-def test_players_uniqueness(stats_t:list[str], stats_a:list[str])->None:
+def test_players_uniqueness(stats_t: list[str], stats_a: list[str]) -> None:
+    """
+    Test the uniqueness of players in two lists.
 
-    set_t = set(stats_a)
-    set_a = set(stats_t)
+    Args:
+        stats_t (list[str]): The first list of player statistics.
+        stats_a (list[str]): The second list of player statistics.
 
+    Returns:
+        None
+    """
+    set_t = set(stats_t)
+    set_a = set(stats_a)
+
+    # Logging information
     print(set_t == set_a)
-    print(set_t.difference(set_a)) 
+    print(set_t.difference(set_a))
     print(set_a.difference(set_t))
 
 
@@ -103,11 +136,22 @@ def test_players_uniqueness(stats_t:list[str], stats_a:list[str])->None:
     description="Save data to S3 bucket as parquet.",
     tags=["NBA", "Basketball-Reference", "Stats", "Ingestion"],
 )
-def load_data(df:pd.DataFrame, bucket_name:str, current_day:str)->None:
+def load_data(df: pd.DataFrame, bucket_name: str, current_day: str) -> None:
+    """
+    Save DataFrame to S3 bucket as parquet.
 
+    Args:
+        df (pd.DataFrame): The DataFrame to be saved.
+        bucket_name (str): The S3 bucket name.
+        current_day (str): The current day for the parquet file.
+
+    Returns:
+        None
+    """
     wr.s3.to_parquet(
-        df=df
-        ,path=f"s3://{bucket_name}/data/raw/players/{current_day}.parquet"
+        df=df,
+        path=f"s3://{bucket_name}/data/raw/players/{current_day}.parquet"
     )
 
+    # Logging information
     print("Data saved to S3 bucket.")
