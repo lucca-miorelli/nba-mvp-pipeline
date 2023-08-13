@@ -1,22 +1,55 @@
 import os
+import psycopg2
 import awswrangler as wr
 from sqlalchemy import create_engine
 
 # rds settings
-db_host = os.environ['DB_HOST']
-db_port = os.environ['DB_PORT']
-db_name = os.environ['DB_NAME']
-db_username = os.environ['DB_USERNAME']
-db_password = os.environ['DB_PASSWORD']
+DB_HOST = os.environ['DB_HOST']
+DB_PORT = os.environ['DB_PORT']
+DB_NAME = os.environ['DB_NAME']
+DB_USERNAME = os.environ['DB_USERNAME']
+DB_PASSWORD = os.environ['DB_PASSWORD']
 
-conn_str = f'postgresql://{db_username}:{db_password}@{db_host}:{db_port}/{db_name}'
 
 def lambda_handler(event, context):
     
-    # read parquet file from s3 with wr
-    df = wr.s3.read_parquet(path='s3://nba-mvp-pipeline/data/raw/players/2023_07_27.parquet')
+    try:
+        df = wr.s3.read_parquet(path='s3://nba-mvp-pipeline/data/raw/players/2023_08_03.parquet')
+    except Exception as e:
+        print(e)
+    else:
+        print(df.head())
+
+    # connect to Postgresql database
+    con = psycopg2.connect(
+        user=DB_USERNAME,
+        host=DB_HOST,
+        database=DB_NAME,
+        port=DB_PORT,
+        password=DB_PASSWORD
+    )
     
-    # Set up PostgreSQL connection
-    with create_engine(conn_str) as engine:
-        # Upload data to PostgreSQL table
-        df.to_sql('nba_stats', engine, if_exists='append', index=False, schema='public')
+    # create cursor
+    cur = con.cursor()
+    
+    # execute query
+    cur.execute("SELECT version();")
+    
+    # fetch results
+    record = cur.fetchone()
+    print("You are connected to - ", record,"\n")
+    
+    # close connection
+    cur.close()
+    con.close()
+    
+    try:
+        print("Writing to database...")
+        conn_str = f'postgresql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
+        
+        df.to_sql('nba_stats', con=create_engine(conn_str), if_exists='append', index=False, schema='public')
+            
+        print("Done!")
+        
+    except Exception as e:
+        print(f"This is the exception: {e}")
