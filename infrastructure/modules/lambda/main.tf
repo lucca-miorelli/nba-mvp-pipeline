@@ -56,17 +56,6 @@ resource "aws_iam_role_policy_attachment" "lambda_s3_read" {
   role       = aws_iam_role.lambda.name
 }
 
-
-# resource "aws_lambda_layer_version" "pandas" {
-#   layer_name = "pandas"
-#   compatible_runtimes = [
-#     "python3.9"
-#   ]
-
-#   filename         = data.archive_file.pandas.output_path
-#   source_code_hash = data.archive_file.pandas.output_base64sha256
-# }
-
 resource "aws_lambda_layer_version" "psycopg2" {
   layer_name = "psycopg2"
   compatible_runtimes = [
@@ -76,16 +65,6 @@ resource "aws_lambda_layer_version" "psycopg2" {
   filename         = data.archive_file.psycopg2.output_path
   source_code_hash = data.archive_file.psycopg2.output_base64sha256
 }
-
-# resource "aws_lambda_layer_version" "pyarrow" {
-#   layer_name = "pyarrow"
-#   compatible_runtimes = [
-#     "python3.9"
-#   ]
-
-#   filename         = data.archive_file.pyarrow.output_path
-#   source_code_hash = data.archive_file.pyarrow.output_base64sha256
-# }
 
 resource "aws_lambda_layer_version" "sqlalchemy" {
   layer_name = "sqlalchemy"
@@ -98,15 +77,6 @@ resource "aws_lambda_layer_version" "sqlalchemy" {
 }
 
 # Create a permission for the lambda to access each layer
-
-# resource "aws_lambda_layer_version_permission" "pandas" {
-#   layer_name     = aws_lambda_layer_version.pandas.layer_name
-#   version_number = aws_lambda_layer_version.pandas.version
-#   statement_id   = "AllowLambda"
-#   action         = "lambda:GetLayerVersion"
-#   principal      = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
-# }
-
 resource "aws_lambda_layer_version_permission" "psycopg2" {
   layer_name     = aws_lambda_layer_version.psycopg2.layer_name
   version_number = aws_lambda_layer_version.psycopg2.version
@@ -114,14 +84,6 @@ resource "aws_lambda_layer_version_permission" "psycopg2" {
   action         = "lambda:GetLayerVersion"
   principal      = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
 }
-
-# resource "aws_lambda_layer_version_permission" "pyarrow" {
-#   layer_name     = aws_lambda_layer_version.pyarrow.layer_name
-#   version_number = aws_lambda_layer_version.pyarrow.version
-#   statement_id   = "AllowLambda"
-#   action         = "lambda:GetLayerVersion"
-#   principal      = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
-# }
 
 resource "aws_lambda_layer_version_permission" "sqlalchemy" {
   layer_name     = aws_lambda_layer_version.sqlalchemy.layer_name
@@ -140,23 +102,11 @@ data "archive_file" "load_db" {
   output_path = "${path.module}/load_db_function.zip"
 }
 
-# data "archive_file" "pandas" {
-#   type        = "zip"
-#   source_dir  = "${path.module}/layers/pandas/"
-#   output_path = "${path.module}/layers/pandas.zip"
-# }
-
 data "archive_file" "psycopg2" {
   type        = "zip"
   source_dir  = "${path.module}/layers/psycopg2/"
   output_path = "${path.module}/layers/psycopg2.zip"
 }
-
-# data "archive_file" "pyarrow" {
-#   type        = "zip"
-#   source_dir  = "${path.module}/layers/pyarrow/"
-#   output_path = "${path.module}/layers/pyarrow.zip"
-# }
 
 data "archive_file" "sqlalchemy" {
   type        = "zip"
