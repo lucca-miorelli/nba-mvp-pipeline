@@ -1,4 +1,4 @@
-$requirementsFile = "infrastructure/modules/lambda/requirements.txt"
+$requirementsFile = "infrastructure/modules/lambda/layers/requirements.txt"
 $installDir = "infrastructure/modules/lambda/layers"
 
 # Create the installation directory if it doesn't exist
