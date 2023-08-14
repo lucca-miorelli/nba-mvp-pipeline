@@ -1,5 +1,15 @@
+#########################################################
+#           IMPORT LIBRARIES AND DATA SOURCES           #
+#########################################################
+
+# Import the AWS caller identity data source to get current account info
 data "aws_caller_identity" "current" {}
 
+#########################################################
+#               LAMBDA FUNCTION RESOURCE                #
+#########################################################
+
+# Define an AWS Lambda function resource
 resource "aws_lambda_function" "load_db" {
   filename      = data.archive_file.load_db.output_path
   function_name = "load_db"
@@ -9,6 +19,7 @@ resource "aws_lambda_function" "load_db" {
   timeout       = 300
   memory_size   = 500
 
+  # Set environment variables for the Lambda function
   environment {
     variables = {
       DB_HOST     = var.db_host
@@ -21,6 +32,7 @@ resource "aws_lambda_function" "load_db" {
 
   source_code_hash = "${data.archive_file.load_db.output_base64sha256}}"
 
+  # Attach AWS Lambda layers for additional libraries
   layers = [
     "arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python39:8",
     aws_lambda_layer_version.sqlalchemy.arn,
@@ -28,6 +40,11 @@ resource "aws_lambda_function" "load_db" {
   ]
 }
 
+##########################################################
+#          LAMBDA PERMISSION FOR S3 EVENT                #
+##########################################################
+
+# Create permission for S3 bucket to invoke the Lambda function
 resource "aws_lambda_permission" "s3_invoke" {
   statement_id  = "AllowS3Invoke"
   action        = "lambda:InvokeFunction"
@@ -36,6 +53,11 @@ resource "aws_lambda_permission" "s3_invoke" {
   source_arn    = "arn:aws:s3:::${var.bucket_name}"
 }
 
+#########################################################
+#       S3 BUCKET NOTIFICATION CONFIGURATION            #
+#########################################################
+
+# Configure S3 bucket notification to invoke the Lambda function on object creation
 resource "aws_s3_bucket_notification" "bucket_notification" {
   bucket = var.bucket_name
 
@@ -43,13 +65,18 @@ resource "aws_s3_bucket_notification" "bucket_notification" {
     lambda_function_arn = aws_lambda_function.load_db.arn
     events              = ["s3:ObjectCreated:*"]
     filter_prefix       = "data/raw/players/"
-
   }
 }
 
+#########################################################
+#                IAM ROLE FOR LAMBDA                    #
+#########################################################
+
+# Create an IAM role for the Lambda function
 resource "aws_iam_role" "lambda" {
   name = "lambda_role"
 
+  # Define the IAM role's assume role policy
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -64,16 +91,25 @@ resource "aws_iam_role" "lambda" {
   })
 }
 
+# Attach policies to the IAM role
+
+# Attach AWS Lambda basic execution policy
 resource "aws_iam_role_policy_attachment" "lambda_execution" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
   role       = aws_iam_role.lambda.name
 }
 
-# attach policy so that lambda can read s3 files
+# Attach Amazon S3 read-only access policy
 resource "aws_iam_role_policy_attachment" "lambda_s3_read" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess"
   role       = aws_iam_role.lambda.name
 }
+
+#########################################################
+#            LAMBDA LAYER VERSION RESOURCES             #
+#########################################################
+
+# Create Lambda layer versions for psycopg2 and sqlalchemy
 
 resource "aws_lambda_layer_version" "psycopg2" {
   layer_name = "psycopg2"
@@ -95,7 +131,12 @@ resource "aws_lambda_layer_version" "sqlalchemy" {
   source_code_hash = data.archive_file.sqlalchemy.output_base64sha256
 }
 
-# Create a permission for the lambda to access each layer
+#########################################################
+#        LAMBDA LAYER PERMISSIONS FOR ROOT ACCOUNT      #
+#########################################################
+
+# Create permissions for Lambda function to access each layer
+
 resource "aws_lambda_layer_version_permission" "psycopg2" {
   layer_name     = aws_lambda_layer_version.psycopg2.layer_name
   version_number = aws_lambda_layer_version.psycopg2.version
@@ -112,8 +153,11 @@ resource "aws_lambda_layer_version_permission" "sqlalchemy" {
   principal      = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
 }
 
+#########################################################
+#           ARCHIVE FILE DATA SOURCES                   #
+#########################################################
 
-# Create a zip file for each layer
+# Create archive files for Lambda function code and layers
 
 data "archive_file" "load_db" {
   type        = "zip"
