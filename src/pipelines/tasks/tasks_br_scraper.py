@@ -44,12 +44,17 @@ def get_stats(season: str = "2022-23", info: str = "totals") -> pd.DataFrame:
 
     # Rename columns based on selected info
     if info == "per_game":
+        columns_to_exclude = ["Player", "Tm"]
         new_column_suffix = "_per_game"
     elif info == "totals":
+        columns_to_exclude = ["Player", "Tm"]
         new_column_suffix = "_totals"
     else:  # For "advanced" info
         columns_to_exclude = ["Player", "Tm", "Pos", "Age", "G", "MP", "Season"]
-        df = df.rename(columns={i: f"{i}_advanced" for i in df.columns if i not in columns_to_exclude})
+        new_column_suffix = "_advanced"
+
+    # Rename columns
+    df = df.rename(columns={i: f"{i}{new_column_suffix}" for i in df.columns if i not in columns_to_exclude})
     
     # Log information
     print(f"Processing {info} stats...")
