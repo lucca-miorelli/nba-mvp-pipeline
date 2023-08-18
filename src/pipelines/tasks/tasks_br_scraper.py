@@ -6,6 +6,8 @@ from BRScraper import nba
 from prefect import task
 import pandas as pd
 import awswrangler as wr
+from functools import reduce
+from typing import List
 
 
 #########################################################
@@ -57,6 +59,36 @@ def get_stats(season: str = "2022-23", info: str = "totals") -> pd.DataFrame:
 
 
 #########################################################
+#              Check Players and Shapes                 #
+#########################################################
+
+@task(
+    name="Data Quality Check Players and Duplicates",
+    description="Check player uniqueness and duplicates.",
+    tags=["NBA", "Basketball-Reference", "Stats", "Test", "Data Quality"],
+)
+def check_players_and_duplicates(dataframes:List[pd.DataFrame]) -> None:
+    
+    # Check player uniqueness and DataFrame shapes
+    players_sets = [set(df['Player']) for df in dataframes]
+
+    if players_sets[0] == players_sets[1] == players_sets[2]:
+        print("All players are the same in each DataFrame.")
+    else:
+        raise ValueError("Players are not the same in each DataFrame.")
+    
+    # Logging information    
+    print(f"\nDataFrame shape:\ndf1: {dataframes[0].shape}\ndf2: {dataframes[1].shape}\ndf3: {dataframes[2].shape}\n")
+    print(f"DataFrame Unique Players:\ndf1: {len(players_sets[0])}\ndf2: {len(players_sets[1])}\ndf3: {len(players_sets[2])}\n")
+
+    # Check for duplicates
+    for i, df in enumerate(dataframes, start=1):
+        if df.duplicated(subset=["Player", "Tm"]).any():
+            raise ValueError(f"df{i} has duplicates.")
+        else:
+            print(f"df{i} has no duplicates.")
+
+#########################################################
 #                Merge DataFrames                       #
 #########################################################
 
@@ -65,41 +97,18 @@ def get_stats(season: str = "2022-23", info: str = "totals") -> pd.DataFrame:
     description="Merge totals, per_game, and advanced DataFrames into one.",
     tags=["NBA", "Basketball-Reference", "Stats", "Transformation"],
 )
-def merge_dfs(df1: pd.DataFrame, df2: pd.DataFrame, df3: pd.DataFrame) -> pd.DataFrame:
+def merge_dfs(dataframes: List[pd.DataFrame]) -> pd.DataFrame:
     """
     Merge player statistics DataFrames into one.
 
     Args:
-        df1 (pd.DataFrame): The first DataFrame.
-        df2 (pd.DataFrame): The second DataFrame.
-        df3 (pd.DataFrame): The third DataFrame.
+        dataframes (List[pd.DataFrame]): List of DataFrames to be merged.
 
     Returns:
         pd.DataFrame: A merged DataFrame.
     """
-
-    # Check player uniqueness and DataFrame shapes
-    players1 = set(df1['Player'])
-    players2 = set(df2['Player'])
-    players3 = set(df3['Player'])
-
-
-    if players1 == players2 == players3:
-        print("All players are the same in each DataFrame.")
-    else:
-        print("[WARNING]: Players are not the same in each DataFrame.")
-
-    print(f"\nDataFrame shape:\ndf1: {df1.shape}\ndf2: {df2.shape}\ndf3: {df3.shape}\n")
-    print(f"DataFrame Unique Players:\ndf1: {len(players1)}\ndf2: {len(players2)}\ndf3: {len(players3)}\n")
-
-    # Check for duplicates in DataFrames
-    for i, df in enumerate([df1, df2, df3], start=1):
-        if df.duplicated(subset=["Player", "Tm"]).any():
-            print(f"df{i} has duplicates.")
-
-    # Merge DataFrames
-    merged_df = pd.merge(df1, df2, how="inner", on=["Player", "Tm"])
-    df = pd.merge(merged_df, df3, how="inner", on=["Player", "Tm"])
+    # Merge DataFrames on Player and Tm
+    df = reduce(lambda left, right: pd.merge(left, right, on=["Player", "Tm"]), dataframes)
 
     # Logging information
     print(f"Shape: {df.shape}\nColumns: {list(df.columns)}\nHead:\n{df.head()}")
@@ -130,42 +139,7 @@ def add_date_column(df: pd.DataFrame, snapshot_date: str) -> pd.DataFrame:
     print(f"Added snapshot_date column with value {snapshot_date}.")
 
     return df
-
-
-#########################################################
-#              Test Players Uniqueness                  #
-#########################################################
-
-@task(
-    name="Test Players Uniqueness",
-    description="Test keystring in each dataframe to ensure uniqueness.",
-    tags=["NBA", "Basketball-Reference", "Stats", "Test", "Data Quality"],
-)
-def test_players_uniqueness(stats_t: list[str], stats_a: list[str]) -> None:
-    """
-    Test the uniqueness of players in two lists.
-
-    Args:
-        stats_t (list[str]): The first list of player statistics.
-        stats_a (list[str]): The second list of player statistics.
-
-    Returns:
-        None
-    """
-    # Convert lists to sets for comparison
-    set_t = set(stats_t)
-    set_a = set(stats_a)
-
-    # Check for uniqueness
-    are_equal = set_t == set_a
-    t_unique = set_t.difference(set_a)
-    a_unique = set_a.difference(set_t)
-
-    # Logging information
-    print(f"Are the players unique? {are_equal}")
-    print(f"Players unique to totals: {t_unique}")
-    print(f"Players unique to advanced: {a_unique}")
-
+    
 
 #########################################################
 #            Ingest Data into S3 Bucket                 #
