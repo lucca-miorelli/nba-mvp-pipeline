@@ -174,3 +174,22 @@ def load_data(df: pd.DataFrame, bucket_name: str, current_day: str) -> None:
 
     # Logging information
     print("Data saved to S3 bucket.")
+
+#########################################################
+#          Ingest Historical Data into S3 Bucket        #
+#########################################################
+
+@task(
+    name="Ingest Historical Data",
+    description="Save historical data to S3 bucket as parquet.",
+    tags=["NBA", "Basketball-Reference", "Stats", "Ingestion"],
+)
+def load_historical_data(df: pd.DataFrame, bucket_name: str, season: str) -> None:
+
+    # Construct the S3 path for saving parquet file
+    s3_path = f"s3://{bucket_name}/data/raw/historical/{season}.parquet"
+
+    wr.s3.to_parquet(df=df, path=s3_path)
+
+    # Logging information
+    print("Historical data saved to S3 bucket.")
