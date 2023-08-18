@@ -19,7 +19,7 @@ from typing import List
     description="Get stats from basketball-reference.com",
     tags=["NBA", "Basketball-Reference", "Stats", "Extraction"],
 )
-def get_stats(season: str = "2022-23", info: str = "totals") -> pd.DataFrame:
+def get_stats(season: str = "2023", info: str = "totals") -> pd.DataFrame:
     """
     Get player statistics from basketball-reference.com.
     
