@@ -20,8 +20,21 @@ BUCKET_NAME    = "nba-mvp-pipeline"
 #                   FLOW DEFINITION                     #
 #########################################################
 
-@flow
-def scrap_current_season_stats():
+@flow(name="[BRef] Current Season Data Scraper", flow_run_name="{date}")
+def scrap_current_season_stats(date: str = CURRENT_DAY.strftime("%Y_%m_%d")) -> None:
+    """
+    Scrapes current NBA player statistics from Basketball Reference.
+    Makes three requests to the website, one for each type of statistics (advanced, totals, per game).
+    Apply simple data cleaning and transformation.
+    Loads the data into an S3 `nba-mvp-pipeline/data/raw/{date}.parquet`.
+    
+    Args:
+        date (str): The date of the snapshot in the format "YYYY_MM_DD".
+        bucket_name (str): The name of the S3 bucket.
+        
+    Returns:
+        None
+    """
     # Get player statistics for different types
     df_totals   = get_stats(season=CURRENT_SEASON, info="advanced")
     df_advanced = get_stats(season=CURRENT_SEASON, info="totals")
@@ -36,8 +49,10 @@ def scrap_current_season_stats():
     # Add snapshot date column
     df_with_date  = add_date_column(merged_df, CURRENT_DAY)
 
+    # Lembrar de fazer a conversão de tipos de colunas
+
     # Load data into S3 bucket
-    load_data(df_with_date, BUCKET_NAME, CURRENT_DAY.strftime("%Y_%m_%d"))
+    load_data(df_with_date, BUCKET_NAME, date)
 
 
 #########################################################
