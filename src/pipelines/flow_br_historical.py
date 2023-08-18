@@ -1,6 +1,7 @@
 from prefect import flow
 from tasks.tasks_br_scraper import get_stats
-from tasks.tasks_br_scraper import merge_dfs, add_date_column, check_players_and_duplicates, load_historical_data
+from tasks.tasks_br_scraper import merge_dfs, check_players_and_duplicates, load_historical_data, add_season_column, define_column_data_types
+from tasks.data_types import data_types
 
 SEASONS = [str(i) for i in range(2007, 2024)] # 2006-07 to 2022-23
 BUCKET_NAME = "nba-mvp-pipeline"
@@ -30,10 +31,14 @@ def historical_data_scraper(season: str):
     # Merge DataFrames
     merged_df = merge_dfs([df_totals, df_advanced, df_pergame])
 
-    # Lembrar de fazer a conversão de tipos de colunas
+    # Add season column
+    df_with_season = add_season_column(merged_df, season)
+
+    # Define column data types
+    df_transformed = define_column_data_types(df_with_season, data_types)
 
     # Load data into S3 bucket
-    load_historical_data(merged_df, BUCKET_NAME, season)
+    load_historical_data(df_transformed, BUCKET_NAME, season)
 
 
 

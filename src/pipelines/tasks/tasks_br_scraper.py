@@ -144,6 +144,63 @@ def add_date_column(df: pd.DataFrame, snapshot_date: str) -> pd.DataFrame:
     print(f"Added snapshot_date column with value {snapshot_date}.")
 
     return df
+
+#########################################################
+#             Add Season Column                         #
+#########################################################
+
+@task(
+    name="Add Season Column",
+    description="Add a season column to the DataFrame.",
+    tags=["NBA", "Basketball-Reference", "Stats", "Transformation"]
+)
+def add_season_column(df: pd.DataFrame, season: str) -> pd.DataFrame:
+    """
+    Add a season column to the DataFrame.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame.
+        season (str): The NBA season ("2023")
+
+    Returns:
+        pd.DataFrame: The DataFrame with the added season column.
+    """
+    # Format season
+    season = f"{str(int(season)-1)}-{season[2:]}"
+
+    # Add snapshot date column
+    df['season'] = season
+
+    # Logging information
+    print(f"Added season column with value {season}.")
+
+    return df
+
+
+#########################################################
+# Define data types for each column in the DataFrame    #
+#########################################################
+
+@task
+def define_column_data_types(dataframe, column_data_types):
+    """
+    Defines the data type of each specified column in a DataFrame.
+    
+    Args:
+        dataframe (pd.DataFrame): The DataFrame to be modified.
+        column_data_types (dict): A dictionary mapping column names to their intended data types.
+        
+    Returns:
+        pd.DataFrame: The modified DataFrame with the defined column data types.
+    """
+    for column, data_type in column_data_types.items():
+        if column in dataframe.columns:
+            dataframe[column] = dataframe[column].astype(data_type)
+            print(f"Column '{column}' data type changed to '{data_type}'.")
+        else:
+            print(f"Column '{column}' not found in the DataFrame.")
+    return dataframe
+
     
 
 #########################################################

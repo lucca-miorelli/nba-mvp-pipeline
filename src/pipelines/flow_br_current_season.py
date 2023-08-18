@@ -3,8 +3,10 @@
 #########################################################
 
 from prefect import flow
-from tasks.tasks_br_scraper import get_stats, merge_dfs, add_date_column, load_data, check_players_and_duplicates
+from tasks.tasks_br_scraper import get_stats, merge_dfs, add_date_column, load_data, check_players_and_duplicates, add_season_column, define_column_data_types
 from datetime import datetime
+from tasks.data_types import data_types
+
 
 
 #########################################################
@@ -49,10 +51,14 @@ def scrap_current_season_stats(date: str = CURRENT_DAY.strftime("%Y_%m_%d")) -> 
     # Add snapshot date column
     df_with_date  = add_date_column(merged_df, CURRENT_DAY)
 
-    # Lembrar de fazer a conversão de tipos de colunas
+    # Add season column
+    df_with_season = add_season_column(df_with_date, CURRENT_SEASON)
+
+    # Column data types
+    df_transformed = define_column_data_types(df_with_season, data_types)
 
     # Load data into S3 bucket
-    load_data(df_with_date, BUCKET_NAME, date)
+    load_data(df_transformed, BUCKET_NAME, date)
 
 
 #########################################################
