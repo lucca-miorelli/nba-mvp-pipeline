@@ -55,6 +55,9 @@ def get_stats(season: str = "2023", info: str = "totals") -> pd.DataFrame:
 
     # Rename columns
     df = df.rename(columns={i: f"{i}{new_column_suffix}" for i in df.columns if i not in columns_to_exclude})
+
+    # Remove * from Player column
+    df['Player'] = df['Player'].str.replace("*", "")
     
     # Log information
     print(f"Processing {info} stats...")
