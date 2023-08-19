@@ -17,13 +17,26 @@ CURRENT_SEASON = "2023" # "2022-23"
 CURRENT_DAY    = datetime.now()
 BUCKET_NAME    = "nba-mvp-pipeline"
 
+#########################################################
+#                 HELPER FUNCTIONS                      #
+#########################################################
+
+def flow_run_name_generator():
+    """
+    Generates a flow run name for the Prefect flow.
+    
+    Returns:
+        str: The flow run name in the format "YYYY_MM_DD"
+    """
+    return CURRENT_DAY.strftime("%Y_%m_%d")
+
 
 #########################################################
 #                   FLOW DEFINITION                     #
 #########################################################
 
-@flow(name="[BRef] Current Season Data Scraper", flow_run_name="{date}")
-def scrap_current_season_stats(date: str = CURRENT_DAY.strftime("%Y_%m_%d")) -> None:
+@flow(name="[BRef] Current Season Data Scraper", flow_run_name=flow_run_name_generator, log_prints=True)
+def scrap_current_season_stats() -> None:
     """
     Scrapes current NBA player statistics from Basketball Reference.
     Makes three requests to the website, one for each type of statistics (advanced, totals, per game).
@@ -58,7 +71,7 @@ def scrap_current_season_stats(date: str = CURRENT_DAY.strftime("%Y_%m_%d")) -> 
     df_transformed = define_column_data_types(df_with_season, data_types)
 
     # Load data into S3 bucket
-    load_data(df_transformed, BUCKET_NAME, date)
+    load_data(df_transformed, BUCKET_NAME, CURRENT_DAY.strftime("%Y_%m_%d"))
 
 
 #########################################################
