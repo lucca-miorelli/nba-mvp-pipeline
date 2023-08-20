@@ -17,6 +17,8 @@ This README explains the provisioning of cloud resources for this project with T
     - [EC2 Instance S3 Access Policy](#ec2-instance-s3-access-policy)
     - [IAM Role and Instance Profile](#iam-role-and-instance-profile)
     - [SSH Key Pair](#ssh-key-pair)
+    - [RDS Instance](#rds-instance)
+    - [Lambda Function](#lambda-function)
 
 ## Prerequisites
 
@@ -111,5 +113,20 @@ An S3 bucket is created using the aws_s3_bucket resource block named `nba_mvp_bu
 Please note that this is just a summary of the resources being created. For more details, refer to the comments in the `main.tf` file.
 
 
+### RDS Instance
+
+- An RDS instance is created using the `aws_db_instance` resource block. The instance is configured with the specified DB engine, instance class, username, password, and security group ID.
+  - The DB engine is set using the `var.db_engine` variable.
+  - The instance class is set using the `var.db_instance_class` variable.
+  - The username is set using the `var.db_username` variable.
+  - The password is set using the `var.db_password` variable.
+  - The security group is set to `[aws_security_group.rds_security_group.id]`.
+
+### Lambda Function
+
+- A Lambda function is created using the `aws_lambda_function` resource block. The function is configured with the specified runtime, handler, and role.
+  - The runtime is set using the `var.lambda_runtime` variable.
+  - The handler is set using the `var.lambda_handler` variable.
+  - The role is set to `[aws_iam_role.lambda_role.arn]`.
 ---
 

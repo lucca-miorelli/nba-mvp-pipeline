@@ -91,3 +91,12 @@ module "rds_postgres" {
 
   tags               = var.tags
 }
+
+
+# ################################################################################
+# #                                    LAMBDA FUNCTION                           #
+# ################################################################################
+# Create Lambda function
+module "lambda" {
+  source = "../../modules/lambda"
+}
