@@ -43,8 +43,8 @@ def flow_run_name_generator():
 #                   FLOW DEFINITION                     #
 #########################################################
 
-def scrap_current_season_stats() -> None:
 @flow(name="StatsScraper", flow_run_name=flow_run_name_generator, log_prints=True)
+def scrap_current_season_stats(season:str = CURRENT_SEASON) -> None:
     """
     Scrapes current NBA player statistics from Basketball Reference.
     Makes three requests to the website, one for each type of statistics (advanced, totals, per game).
@@ -52,16 +52,18 @@ def scrap_current_season_stats() -> None:
     Loads the data into an S3 `nba-mvp-pipeline/data/raw/{date}.parquet`.
     
     Args:
-        date (str): The date of the snapshot in the format "YYYY_MM_DD".
-        bucket_name (str): The name of the S3 bucket.
+        season (str): The season to scrape. Format: "YYYY", e.g. "2023" for season 2022-23.
         
     Returns:
         None
     """
+    # Log season
+    print(f"Season: {season}")
+
     # Get player statistics for different types
-    df_totals   = get_stats(season=CURRENT_SEASON, info="advanced")
-    df_advanced = get_stats(season=CURRENT_SEASON, info="totals")
-    df_pergame  = get_stats(season=CURRENT_SEASON, info="per_game")
+    df_totals   = get_stats(season=season, info="advanced")
+    df_advanced = get_stats(season=season, info="totals")
+    df_pergame  = get_stats(season=season, info="per_game")
 
     # Check for players and duplicates
     check_players_and_duplicates([df_totals, df_advanced, df_pergame])
@@ -73,13 +75,13 @@ def scrap_current_season_stats() -> None:
     df_with_date  = add_date_column(merged_df, CURRENT_DAY)
 
     # Add season column
-    df_with_season = add_season_column(df_with_date, CURRENT_SEASON)
+    df_with_season = add_season_column(df_with_date, season)
 
     # Column data types
     df_transformed = define_column_data_types(df_with_season, data_types)
 
     # Load data into S3 bucket
-    load_data(df_transformed, BUCKET_NAME, CURRENT_DAY.strftime("%Y_%m_%d"))
+    # load_data(df_transformed, BUCKET_NAME, CURRENT_DAY.strftime("%Y_%m_%d"))
 
 
 #########################################################
@@ -87,4 +89,4 @@ def scrap_current_season_stats() -> None:
 #########################################################
 
 if __name__ == "__main__":
-    scrap_current_season_stats()
+    scrap_current_season_stats(season=CURRENT_SEASON)

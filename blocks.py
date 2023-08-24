@@ -13,7 +13,7 @@ current_credentials = credentials.get_frozen_credentials()
 
 gh = GitHub(
     repository="lucca-miorelli/nba-mvp-pipeline",
-    reference="master",
+    reference="feature/prefect-postgres",
 )
 gh.save("gh-master", overwrite=True)
 
