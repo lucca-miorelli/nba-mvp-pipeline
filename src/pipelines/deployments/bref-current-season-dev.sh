@@ -1,1 +1,0 @@
-prefect deployment build ".\src\pipelines\flow_br_current_season.py:scrap_current_season_stats" --name "BasketballReference Scrapper (2022-23)" --version 1.0.0 --tag "ETL" --tag "BRef" -q default  -p default-agent-pool --infra process --storage-block github/test-gh --cron "0 10 * * *" --output ".\src\bref-current-season-dev.yaml"

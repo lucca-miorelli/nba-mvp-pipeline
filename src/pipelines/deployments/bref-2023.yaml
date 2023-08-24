@@ -1,0 +1,65 @@
+###
+### A complete description of a Prefect Deployment for flow 'StatsScraper'
+###
+name: BasketballReference-2023
+description: "Scrapes current NBA player statistics from Basketball Reference.\nMakes\
+  \ three requests to the website, one for each type of statistics (advanced, totals,\
+  \ per game).\nApply simple data cleaning and transformation.\nLoads the data into\
+  \ an S3 `nba-mvp-pipeline/data/raw/{date}.parquet`.\n\nArgs:\n    season (str):\
+  \ The season to scrape. Format: \"YYYY\", e.g. \"2023\" for season 2022-23.\n  \
+  \  \nReturns:\n    None"
+version: 1.0.0
+# The work queue that will handle this deployment's runs
+work_queue_name: default
+work_pool_name: default-agent-pool
+tags:
+- ETL
+- BRef
+parameters: {}
+schedule:
+  cron: 0 10 * * *
+  timezone: null
+  day_or: true
+is_schedule_active: null
+infra_overrides: {}
+infrastructure:
+  type: process
+  env: {}
+  labels: {}
+  name: null
+  command: null
+  stream_output: true
+  working_dir: null
+  block_type_slug: process
+  _block_type_slug: process
+
+###
+### DO NOT EDIT BELOW THIS LINE
+###
+flow_name: StatsScraper
+manifest_path: null
+storage:
+  repository: https://github.com/lucca-miorelli/nba-mvp-pipeline/
+  reference: feature/prefect-postgres
+  access_token: null
+  include_git_objects: true
+  _block_document_id: 50406225-e558-4db4-8655-f820eb8d0cca
+  _block_document_name: gh-master
+  _is_anonymous: false
+  block_type_slug: github
+  _block_type_slug: github
+path: ''
+entrypoint: src\pipelines\flow_br_current_season.py:scrap_current_season_stats
+parameter_openapi_schema:
+  title: Parameters
+  type: object
+  properties:
+    season:
+      title: season
+      description: 'The season to scrape. Format: "YYYY", e.g. "2023" for season 2022-23.'
+      default: '2023'
+      position: 0
+      type: string
+  required: null
+  definitions: null
+timestamp: '2023-08-24T22:50:07.852074+00:00'
