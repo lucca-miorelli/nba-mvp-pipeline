@@ -43,8 +43,8 @@ def flow_run_name_generator():
 #                   FLOW DEFINITION                     #
 #########################################################
 
-@flow(name="[BRef] Current Season Data Scraper", flow_run_name=flow_run_name_generator, log_prints=True)
 def scrap_current_season_stats() -> None:
+@flow(name="StatsScraper", flow_run_name=flow_run_name_generator, log_prints=True)
     """
     Scrapes current NBA player statistics from Basketball Reference.
     Makes three requests to the website, one for each type of statistics (advanced, totals, per game).
