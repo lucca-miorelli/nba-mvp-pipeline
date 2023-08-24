@@ -81,7 +81,7 @@ def scrap_current_season_stats(season:str = CURRENT_SEASON) -> None:
     df_transformed = define_column_data_types(df_with_season, data_types)
 
     # Load data into S3 bucket
-    # load_data(df_transformed, BUCKET_NAME, CURRENT_DAY.strftime("%Y_%m_%d"))
+    load_data(df_transformed, BUCKET_NAME, CURRENT_DAY.strftime("%Y_%m_%d"))
 
 
 #########################################################
