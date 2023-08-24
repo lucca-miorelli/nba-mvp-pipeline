@@ -12,8 +12,8 @@ credentials = session.get_credentials()
 current_credentials = credentials.get_frozen_credentials()
 
 gh = GitHub(
-    repository="lucca-miorelli/nba-mvp-pipeline",
-    reference="feature/prefect-postgres",
+    repository="https://github.com/lucca-miorelli/nba-mvp-pipeline/",
+    reference="master",
 )
 gh.save("gh-master", overwrite=True)
 
