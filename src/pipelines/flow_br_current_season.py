@@ -3,7 +3,15 @@
 #########################################################
 
 from prefect import flow
-from tasks.tasks_br_scraper import get_stats, merge_dfs, add_date_column, load_data, check_players_and_duplicates, add_season_column, define_column_data_types
+from tasks.tasks_br_scraper import (
+    get_stats,
+    merge_dfs,
+    add_date_column,
+    load_data,
+    check_players_and_duplicates,
+    add_season_column,
+    define_column_data_types
+)
 from datetime import datetime
 from tasks.data_types import data_types
 
