@@ -97,6 +97,6 @@ module "rds_postgres" {
 # #                                    LAMBDA FUNCTION                           #
 # ################################################################################
 # Create Lambda function
-module "lambda" {
-  source = "../../modules/lambda"
-}
+# module "lambda" {
+#   source = "../../modules/lambda"
+# }
