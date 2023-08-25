@@ -49,7 +49,7 @@ storage:
   block_type_slug: github
   _block_type_slug: github
 path: ''
-entrypoint: src\pipelines\flow_br_current_season.py:scrap_current_season_stats
+entrypoint: src\pipelines\stats_current.py:scrap_current_season_stats
 parameter_openapi_schema:
   title: Parameters
   type: object
