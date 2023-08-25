@@ -40,7 +40,7 @@ flow_name: StatsScraper
 manifest_path: null
 storage:
   repository: https://github.com/lucca-miorelli/nba-mvp-pipeline/
-  reference: feature/prefect-postgres
+  reference: master
   access_token: null
   include_git_objects: true
   _block_document_id: 50406225-e558-4db4-8655-f820eb8d0cca
@@ -62,4 +62,4 @@ parameter_openapi_schema:
       type: string
   required: null
   definitions: null
-timestamp: '2023-08-24T22:50:07.852074+00:00'
+timestamp: '2023-08-25T14:05:35.373642+00:00'
