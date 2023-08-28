@@ -66,10 +66,10 @@ def scrap_current_season_stats(season:str = CURRENT_SEASON) -> None:
     df_pergame  = get_stats(season=season, info="per_game")
 
     # Check for players and duplicates
-    check_players_and_duplicates([df_totals, df_advanced, df_pergame])
+    dataframes = check_players_and_duplicates([df_totals, df_advanced, df_pergame])
 
     # Merge DataFrames
-    merged_df = merge_dfs([df_totals, df_advanced, df_pergame])
+    merged_df = merge_dfs(dataframes)
 
     # Add snapshot date column
     df_with_date  = add_date_column(merged_df, CURRENT_DAY)

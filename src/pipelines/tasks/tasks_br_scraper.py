@@ -95,6 +95,8 @@ def check_players_and_duplicates(dataframes:List[pd.DataFrame]) -> None:
             raise ValueError(f"df{i} has duplicates.")
         else:
             print(f"df{i} has no duplicates.")
+    
+    return dataframes
 
 #########################################################
 #                Merge DataFrames                       #
