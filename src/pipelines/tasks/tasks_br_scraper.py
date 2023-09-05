@@ -34,12 +34,14 @@ def get_stats(season: str = "2023", info: str = "totals") -> pd.DataFrame:
     # Get player statistics
     df = nba.get_stats(season=season, info=info)
 
+    # Define a dictionary to map "info" to columns to drop
+    columns_to_drop_mapping = {
+        "per_game": ["G", "GS", "Pos", "Age"],
+        "totals": ["MP", "G", "Pos", "Age"]
+    }
+
     # Drop unnecessary columns based on selected info
-    columns_to_drop = ['Pos', 'Age', 'G', 'Season']
-    if info == "per_game":
-        columns_to_drop.append('GS')
-    elif info == "totals":
-        columns_to_drop.append('MP')
+    columns_to_drop = columns_to_drop_mapping.get(info, []) + ['Season']
     df = df.drop(columns=columns_to_drop)
 
     # Rename columns based on selected info
@@ -47,10 +49,10 @@ def get_stats(season: str = "2023", info: str = "totals") -> pd.DataFrame:
         columns_to_exclude = ["Player", "Tm"]
         new_column_suffix = "_per_game"
     elif info == "totals":
-        columns_to_exclude = ["Player", "Tm"]
+        columns_to_exclude = ["Player", "Tm", "Pos", "Age"]
         new_column_suffix = "_totals"
     else:  # For "advanced" info
-        columns_to_exclude = ["Player", "Tm", "Pos", "Age", "G", "MP", "Season"]
+        columns_to_exclude = ["Player", "Tm", "Pos", "Age", "Season"]
         new_column_suffix = "_advanced"
 
     # Rename columns
