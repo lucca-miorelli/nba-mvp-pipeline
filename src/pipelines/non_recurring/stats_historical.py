@@ -4,7 +4,15 @@
 
 from prefect import flow
 from tasks.tasks_br_scraper import get_stats
-from tasks.tasks_br_scraper import merge_dfs, check_players_and_duplicates, load_historical_data, add_season_column, define_column_data_types
+from tasks.tasks_br_scraper import (
+    merge_dfs,
+    check_players_and_duplicates,
+    load_historical_data,
+    add_season_column,
+    define_column_data_types,
+    get_standings,
+    merge_standings_and_stats
+)
 from tasks.data_types import data_types
 
 
@@ -64,6 +72,9 @@ def historical_data_scraper(season: str):
     # Extract player statistics for different types
     stats_list = extract_stats(season=season)
 
+    # Extract standings
+    df_standings = get_standings(season=season)
+
     #########################################################
     #                      TRANSFORM                        #
     #########################################################
@@ -72,7 +83,13 @@ def historical_data_scraper(season: str):
     check_players_and_duplicates(stats_list)
 
     # Merge DataFrames
-    merged_df = merge_dfs(stats_list)
+    merged_stats = merge_dfs(stats_list)
+
+    # Merge standings and stats
+    merged_df = merge_standings_and_stats(df_standings, merged_stats)
+    
+    # Fill NaN values with 0
+    merged_df.fillna(0, inplace=True)
 
     # Add season column
     df_with_season = add_season_column(merged_df, season)
