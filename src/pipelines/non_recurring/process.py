@@ -9,6 +9,8 @@ from prefect import task, flow
 from prefect.runtime import flow_run
 from datetime import datetime
 from typing import List
+from tasks.tasks_br_scraper import define_column_data_types
+from tasks.data_types import data_types
 
 
 #########################################################
@@ -90,27 +92,16 @@ def read_stats_from_s3(path):
 )
 def filter_players(df_stats):
     """
-    Filters players that played for more than one team in a given season.
-    If a player played for more than one team, the team name is 'TOT'.
-    
-    Args:
-        df_stats (pd.DataFrame): The DataFrame to filter.
-        
-    Returns:
-        pd.DataFrame: The filtered DataFrame.
-    """
-    # Selects only players with one team or TOT
-    df_stats_filtered = df_stats.groupby("Player").agg({
-        "Tm": lambda x: 'TOT' if len(x.unique()) > 1 else x.unique()[0]
-    }).reset_index()
+    Filter out Tm='TOT.
 
-    # Merges the filtered DataFrame with the original DataFrame to get the other columns
-    df_stats_filtered = pd.merge(
-        df_stats_filtered,
-        df_stats,
-        on=["Player", "Tm"],
-        how="left"
-    )
+    Args:
+        df_stats (pd.DataFrame): DataFrame containing historical stats data.
+
+    Returns:
+        pd.DataFrame: Filtered DataFrame.
+    """
+    # Filter out Tm='TOT'
+    df_stats_filtered = df_stats[df_stats['Tm'] != 'TOT']
 
     print("This is the shape of the filtered DataFrame: ", df_stats_filtered.shape, "\n")
 
@@ -278,6 +269,7 @@ def load_processed_data(df_stats_processed, path):
         )
     except Exception as e:
         print(e)
+        raise Exception("Error loading data to S3.")
     else:
         print("Data loaded successfully!")
 
@@ -321,6 +313,9 @@ def read_and_filter_stats(seasons:List[str])->pd.DataFrame:
     
     # Concatenate DataFrames
     df_stats = pd.concat(all_dataframes, ignore_index=True)
+
+    # Print columns
+    print(df_stats.columns)
 
     return df_stats
 
@@ -374,19 +369,12 @@ def process_data():
     # Merge DataFrames
     df_stats_merged = merge_stats_with_mvp(df_stats, df_mvp)
 
-    if df_stats_merged[df_stats_merged['Share'].notnull()].shape[0] == df_mvp.shape[0]:
-        print("Merge successful!")
-    else:
-        print("[ERROR] Merge unsuccessful!")
-
-        # Find missing players
-        find_missing_players(df_stats, df_mvp)
-
-        # Raise exception
-        raise Exception("Merge unsuccessful!")
-
     # Handle null values
     df_stats_processed = handle_null_values(df_stats_merged)
+
+    # Define data types
+    data_types["Share"] = "float64"
+    df_stats_processed = define_column_data_types(df_stats_processed, data_types)
 
     # Save processed data to S3
     load_processed_data(df_stats_processed, processed_data_path)

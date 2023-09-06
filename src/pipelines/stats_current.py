@@ -10,7 +10,9 @@ from tasks.tasks_br_scraper import (
     load_data,
     check_players_and_duplicates,
     add_season_column,
-    define_column_data_types
+    define_column_data_types,
+    get_standings,
+    merge_standings_and_stats
 )
 from datetime import datetime
 from tasks.data_types import data_types
@@ -66,10 +68,16 @@ def scrap_current_season_stats(season:str = CURRENT_SEASON) -> None:
     df_pergame  = get_stats(season=season, info="per_game")
 
     # Check for players and duplicates
-    check_players_and_duplicates([df_totals, df_advanced, df_pergame])
+    dataframes = check_players_and_duplicates([df_totals, df_advanced, df_pergame])
 
     # Merge DataFrames
-    merged_df = merge_dfs([df_totals, df_advanced, df_pergame])
+    merged_stats = merge_dfs(dataframes)
+
+    # Get standings
+    df_standings = get_standings(season=season, info="total")
+    
+    # Merge standings
+    merged_df = merge_standings_and_stats(standings_df=df_standings, stats_df=merged_stats)
 
     # Add snapshot date column
     df_with_date  = add_date_column(merged_df, CURRENT_DAY)
