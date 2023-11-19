@@ -289,6 +289,7 @@ def define_column_data_types(dataframe, column_data_types):
     """
     for column, data_type in column_data_types.items():
         if column in dataframe.columns:
+            dataframe[column].fillna(0, inplace=True)                 # This is temporary until I figure out how to deal with NaNs
             dataframe[column] = dataframe[column].astype(data_type)
             print(f"Column '{column}' data type changed to '{data_type}'.")
         else:

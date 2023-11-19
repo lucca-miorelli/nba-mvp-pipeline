@@ -23,7 +23,7 @@ from tasks.data_types import data_types
 #                 GLOBAL VARIABLES                      #
 #########################################################
 
-CURRENT_SEASON = "2023" # "2022-23"
+CURRENT_SEASON = "2024" # "2022-23"
 CURRENT_DAY    = datetime.now()
 BUCKET_NAME    = "nba-mvp-pipeline"
 
